@@ -7,6 +7,7 @@ import { criarResponsavel } from '@/lib/actions/responsaveis'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
+import { toast } from 'sonner'
 
 export default function NovoResponsavelPage() {
   const router = useRouter()
@@ -19,8 +20,10 @@ export default function NovoResponsavelPage() {
     const result = await criarResponsavel(formData)
     if (result.error) {
       setError(result.error)
+      toast.error("Erro: " + result.error)
       setIsLoading(false)
     } else {
+      toast.success("Salvo com sucesso")
       router.push('/admin/responsaveis')
     }
   }

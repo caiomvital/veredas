@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
+import { toast } from 'sonner'
 import type { Aluno, Turma } from '@/types/entities'
 
 export default function NovaMatriculaPage() {
@@ -37,8 +38,10 @@ export default function NovaMatriculaPage() {
     const result = await criarMatricula(formData)
     if (result.error) {
       setError(result.error)
+      toast.error("Erro: " + result.error)
       setIsLoading(false)
     } else {
+      toast.success("Matrícula realizada com sucesso")
       router.push('/secretaria/matriculas')
     }
   }

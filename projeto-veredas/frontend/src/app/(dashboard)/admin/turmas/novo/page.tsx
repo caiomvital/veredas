@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
+import { toast } from 'sonner'
 
 const SERIES = [
   { value: '1º EF', label: '1º Ano Ensino Fundamental' },
@@ -35,8 +36,10 @@ export default function NovaTurmaPage() {
     const result = await criarTurma(formData)
     if (result.error) {
       setError(result.error)
+      toast.error("Erro: " + result.error)
       setIsLoading(false)
     } else {
+      toast.success("Salvo com sucesso")
       router.push('/admin/turmas')
     }
   }

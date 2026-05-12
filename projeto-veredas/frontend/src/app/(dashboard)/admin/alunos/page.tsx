@@ -2,14 +2,15 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { listarAlunos } from '@/lib/actions/alunos'
+import { listarAlunos, excluirAluno } from '@/lib/actions/alunos'
 import { DataTable, type Column } from '@/components/ui/data-table'
 import { Button } from '@/components/ui/button'
 import { Badge, statusBadge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Select } from '@/components/ui/select'
-import { Plus, Eye } from 'lucide-react'
+import { Plus, Eye, Trash2 } from 'lucide-react'
 import type { Aluno } from '@/types/entities'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 const columns: Column<Aluno>[] = [
   { key: 'matricula', label: 'Matrícula', sortable: true },
@@ -35,6 +36,9 @@ export default function AlunosPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState('todos')
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
     setIsLoading(true)
@@ -46,6 +50,17 @@ export default function AlunosPage() {
   }, [statusFilter])
 
   useEffect(() => { fetchData() }, [fetchData])
+
+  async function handleDelete() {
+    if (!selectedId) return
+    setIsDeleting(true)
+    const result = await excluirAluno(selectedId)
+    setIsDeleting(false)
+    setShowConfirm(false)
+    setSelectedId(null)
+    if (result.error) setError(result.error)
+    else fetchData()
+  }
 
   return (
     <div>
@@ -89,8 +104,22 @@ export default function AlunosPage() {
             <Link href={`/admin/alunos/${row.id}`}>
               <Button variant="ghost" size="sm"><Eye size={16} /></Button>
             </Link>
+            <Button variant="ghost" size="sm" onClick={() => { setSelectedId(row.id); setShowConfirm(true); }}>
+              <Trash2 size={16} className="text-red-500" />
+            </Button>
           </div>
         )}
+      />
+
+      <ConfirmDialog
+        open={showConfirm}
+        title="Confirmar Exclusão"
+        message="Tem certeza que deseja excluir este aluno? Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        variant="danger"
+        isLoading={isDeleting}
+        onConfirm={handleDelete}
+        onCancel={() => { setShowConfirm(false); setSelectedId(null); }}
       />
     </div>
   )

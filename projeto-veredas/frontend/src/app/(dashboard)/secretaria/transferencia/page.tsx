@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge, statusBadge } from '@/components/ui/badge'
 import { Download, AlertTriangle, Search } from 'lucide-react'
 import type { Aluno, Matricula, Turma } from '@/types/entities'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export default function TransferenciaPage() {
   const { config } = useSchool()
@@ -27,6 +28,7 @@ export default function TransferenciaPage() {
   const [isLoadingDados, setIsLoadingDados] = useState(false)
   const [isTransferindo, setIsTransferindo] = useState(false)
   const [isGerandoPDF, setIsGerandoPDF] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -77,11 +79,16 @@ export default function TransferenciaPage() {
     load()
   }, [selectedAlunoId, alunos])
 
-  async function handleTransferir() {
+  function handleTransferir() {
     if (!aluno || !selectedAlunoId) return
-    if (!window.confirm(`Deseja realmente transferir o(a) aluno(a) ${aluno.nome_completo}?`)) return
+    setShowConfirm(true)
+  }
+
+  async function confirmTransferir() {
+    if (!aluno || !selectedAlunoId) return
 
     setIsTransferindo(true)
+    setShowConfirm(false)
     setError(null)
     setSuccess(null)
 
@@ -254,6 +261,16 @@ export default function TransferenciaPage() {
           Selecione um aluno acima para realizar a transferência.
         </p>
       )}
+      <ConfirmDialog
+        open={showConfirm}
+        title="Confirmar Transferência"
+        message={aluno ? `Deseja realmente transferir o(a) aluno(a) ${aluno.nome_completo}?` : ''}
+        confirmLabel="Transferir"
+        variant="danger"
+        isLoading={isTransferindo}
+        onConfirm={confirmTransferir}
+        onCancel={() => setShowConfirm(false)}
+      />
     </div>
   )
 }

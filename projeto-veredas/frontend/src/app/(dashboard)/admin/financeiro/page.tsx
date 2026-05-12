@@ -19,7 +19,9 @@ import { Select } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { DataTable, type Column } from '@/components/ui/data-table'
 import { Badge, statusBadge } from '@/components/ui/badge'
+import { toast } from 'sonner'
 import type { ConfigMensalidade, LancamentoFinanceiro, Aluno } from '@/types/entities'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 type TabType = 'pendentes' | 'pagos' | 'inadimplentes' | 'extras'
 
@@ -64,6 +66,9 @@ export default function FinanceiroPage() {
   const [extraValor, setExtraValor] = useState('')
   const [extraVencimento, setExtraVencimento] = useState('')
   const [isSavingExtra, setIsSavingExtra] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const fetchAll = useCallback(async () => {
     setIsLoading(true)
@@ -108,8 +113,11 @@ export default function FinanceiroPage() {
     fd.set('ano_letivo', configAno)
     fd.set('valor', configValor)
     const res = await salvarConfigMensalidade(fd)
-    if (res.error) setError(res.error)
-    else {
+    if (res.error) {
+      setError(res.error)
+      toast.error("Erro: " + res.error)
+    } else {
+      toast.success("Configuração salva com sucesso")
       setConfigSerie(''); setConfigValor('')
       const refresh = await listarConfigMensalidades(parseInt(configAno))
       if (!refresh.error) setConfigs(refresh.data ?? [])
@@ -117,12 +125,26 @@ export default function FinanceiroPage() {
     setIsSavingConfig(false)
   }
 
-  async function handleExcluirConfig(id: string) {
-    if (!window.confirm('Excluir esta configuração?')) return
+  function handleExcluirConfig(id: string) {
+    setSelectedId(id)
+    setShowConfirm(true)
+  }
+
+  async function confirmExcluirConfig() {
+    if (!selectedId) return
+    setIsDeleting(true)
     setError(null)
-    const res = await excluirConfigMensalidade(id)
-    if (res.error) setError(res.error)
-    else setConfigs((prev) => prev.filter((c) => c.id !== id))
+    const res = await excluirConfigMensalidade(selectedId)
+    setIsDeleting(false)
+    setShowConfirm(false)
+    setSelectedId(null)
+    if (res.error) {
+      setError(res.error)
+      toast.error("Erro: " + res.error)
+    } else {
+      toast.success("Configuração excluída com sucesso")
+      setConfigs((prev) => prev.filter((c) => c.id !== selectedId))
+    }
   }
 
   // ---- Baixar pagamento ----
@@ -140,8 +162,11 @@ export default function FinanceiroPage() {
     setError(null)
     setBaixarResult(null)
     const res = await baixarPagamento(selectedLancamento.id, pagamentoData)
-    if (res.error) setError(res.error)
-    else {
+    if (res.error) {
+      setError(res.error)
+      toast.error("Erro: " + res.error)
+    } else {
+      toast.success("Pagamento registrado com sucesso")
       setBaixarResult(res.data ?? { multa: 0, numeroRecibo: null })
       setTimeout(() => { setShowBaixarModal(false); setBaixarResult(null) }, 2000)
       fetchLancamentos(activeTab)
@@ -160,8 +185,11 @@ export default function FinanceiroPage() {
     fd.set('valor', extraValor)
     fd.set('data_vencimento', extraVencimento)
     const res = await criarLancamentoExtra(fd)
-    if (res.error) setError(res.error)
-    else {
+    if (res.error) {
+      setError(res.error)
+      toast.error("Erro: " + res.error)
+    } else {
+      toast.success("Lançamento extra criado com sucesso")
       setExtraAlunoId(''); setExtraDescricao(''); setExtraValor(''); setExtraVencimento('')
       if (activeTab === 'extras') fetchLancamentos('extras')
     }
@@ -199,6 +227,14 @@ export default function FinanceiroPage() {
     ...(activeTab === 'pagos' ? [{
       key: 'data_pagamento' as const, label: 'Data Pagamento',
       render: (row: LancamentoFinanceiro) => row.data_pagamento ? formatDate(row.data_pagamento) : '—',
+    }, {
+      key: 'recibo' as const, label: 'Recibo',
+      render: (row: LancamentoFinanceiro) => row.numero_recibo ? (
+        <a href={`/admin/financeiro/recibo/${row.id}`} target="_blank"
+          className="text-xs font-medium text-[var(--color-primary)] hover:underline">
+          {row.numero_recibo}
+        </a>
+      ) : '—',
     }] : []),
   ]
 
@@ -441,6 +477,16 @@ export default function FinanceiroPage() {
           </Card>
         </Modal>
       )}
+      <ConfirmDialog
+        open={showConfirm}
+        title="Confirmar Exclusão"
+        message="Tem certeza que deseja excluir esta configuração de mensalidade? Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        variant="danger"
+        isLoading={isDeleting}
+        onConfirm={confirmExcluirConfig}
+        onCancel={() => { setShowConfirm(false); setSelectedId(null); }}
+      />
     </div>
   )
 }

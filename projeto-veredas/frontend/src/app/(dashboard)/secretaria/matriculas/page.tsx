@@ -10,7 +10,9 @@ import { Badge, statusBadge } from '@/components/ui/badge'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { Plus, XCircle } from 'lucide-react'
+import { toast } from 'sonner'
 import type { Matricula, Turma } from '@/types/entities'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 const columns: Column<Matricula>[] = [
   { key: 'aluno_id', label: 'Aluno' },
@@ -32,6 +34,9 @@ export default function MatriculasPage() {
   const [error, setError] = useState<string | null>(null)
   const [filtroStatus, setFiltroStatus] = useState('todos')
   const [filtroTurma, setFiltroTurma] = useState('')
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
     setIsLoading(true)
@@ -48,11 +53,25 @@ export default function MatriculasPage() {
 
   useEffect(() => { fetchData() }, [fetchData])
 
-  async function handleCancelar(id: string) {
-    if (!confirm('Cancelar esta matrícula?')) return
-    const result = await cancelarMatricula(id)
-    if (result.error) setError(result.error)
-    else fetchData()
+  function handleCancelar(id: string) {
+    setSelectedId(id)
+    setShowConfirm(true)
+  }
+
+  async function confirmCancelar() {
+    if (!selectedId) return
+    setIsDeleting(true)
+    const result = await cancelarMatricula(selectedId)
+    setIsDeleting(false)
+    setShowConfirm(false)
+    setSelectedId(null)
+    if (result.error) {
+      setError(result.error)
+      toast.error("Erro: " + result.error)
+    } else {
+      toast.success("Matrícula cancelada com sucesso")
+      fetchData()
+    }
   }
 
   return (
@@ -107,6 +126,16 @@ export default function MatriculasPage() {
             </Button>
           ) : null
         )}
+      />
+      <ConfirmDialog
+        open={showConfirm}
+        title="Confirmar Cancelamento"
+        message="Tem certeza que deseja cancelar esta matrícula? Esta ação não pode ser desfeita."
+        confirmLabel="Cancelar"
+        variant="danger"
+        isLoading={isDeleting}
+        onConfirm={confirmCancelar}
+        onCancel={() => { setShowConfirm(false); setSelectedId(null); }}
       />
     </div>
   )

@@ -9,7 +9,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Plus, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import type { Disciplina } from '@/types/entities'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 const AREA_LABELS: Record<string, string> = {
   Linguagens: 'Linguagens',
@@ -34,6 +36,9 @@ export default function DisciplinasPage() {
   const [showForm, setShowForm] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
     setIsLoading(true)
@@ -52,18 +57,34 @@ export default function DisciplinasPage() {
     const result = await criarDisciplina(formData)
     if (result.error) {
       setFormError(result.error)
+      toast.error("Erro: " + result.error)
       setIsSaving(false)
     } else {
+      toast.success("Disciplina criada com sucesso")
       setShowForm(false)
       fetchData()
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Excluir esta disciplina?')) return
-    const result = await excluirDisciplina(id)
-    if (result.error) setError(result.error)
-    else fetchData()
+  function handleDelete(id: string) {
+    setSelectedId(id)
+    setShowConfirm(true)
+  }
+
+  async function confirmDelete() {
+    if (!selectedId) return
+    setIsDeleting(true)
+    const result = await excluirDisciplina(selectedId)
+    setIsDeleting(false)
+    setShowConfirm(false)
+    setSelectedId(null)
+    if (result.error) {
+      setError(result.error)
+      toast.error("Erro: " + result.error)
+    } else {
+      toast.success("Disciplina excluída com sucesso")
+      fetchData()
+    }
   }
 
   return (
@@ -122,6 +143,16 @@ export default function DisciplinasPage() {
             </Button>
           </div>
         )}
+      />
+      <ConfirmDialog
+        open={showConfirm}
+        title="Confirmar Exclusão"
+        message="Tem certeza que deseja excluir esta disciplina? Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        variant="danger"
+        isLoading={isDeleting}
+        onConfirm={confirmDelete}
+        onCancel={() => { setShowConfirm(false); setSelectedId(null); }}
       />
     </div>
   )

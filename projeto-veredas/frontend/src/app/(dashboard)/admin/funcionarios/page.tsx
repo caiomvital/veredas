@@ -2,13 +2,14 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { listarFuncionarios } from '@/lib/actions/funcionarios'
+import { listarFuncionarios, excluirFuncionario } from '@/lib/actions/funcionarios'
 import { DataTable, type Column } from '@/components/ui/data-table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Plus, Eye, Trash2 } from 'lucide-react'
 import type { Funcionario } from '@/types/entities'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 const CARGO_LABELS: Record<string, string> = {
   admin: 'Administrador',
@@ -41,6 +42,9 @@ export default function FuncionariosPage() {
   const [data, setData] = useState<Funcionario[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
     setIsLoading(true)
@@ -55,6 +59,17 @@ export default function FuncionariosPage() {
   }, [])
 
   useEffect(() => { fetchData() }, [fetchData])
+
+  async function handleDelete() {
+    if (!selectedId) return
+    setIsDeleting(true)
+    const result = await excluirFuncionario(selectedId)
+    setIsDeleting(false)
+    setShowConfirm(false)
+    setSelectedId(null)
+    if (result.error) setError(result.error)
+    else fetchData()
+  }
 
   return (
     <div>
@@ -83,8 +98,21 @@ export default function FuncionariosPage() {
             <Link href={`/admin/funcionarios/${row.id}`}>
               <Button variant="ghost" size="sm"><Eye size={16} /></Button>
             </Link>
+            <Button variant="ghost" size="sm" onClick={() => { setSelectedId(row.id); setShowConfirm(true); }}>
+              <Trash2 size={16} className="text-red-500" />
+            </Button>
           </div>
         )}
+      />
+      <ConfirmDialog
+        open={showConfirm}
+        title="Confirmar Exclusão"
+        message="Tem certeza que deseja excluir este funcionário? Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        variant="danger"
+        isLoading={isDeleting}
+        onConfirm={handleDelete}
+        onCancel={() => { setShowConfirm(false); setSelectedId(null); }}
       />
     </div>
   )

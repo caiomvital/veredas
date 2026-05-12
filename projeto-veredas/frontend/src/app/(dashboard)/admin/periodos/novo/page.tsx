@@ -7,6 +7,7 @@ import { criarPeriodo } from '@/lib/actions/periodos'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
+import { toast } from 'sonner'
 
 export default function NovoPeriodoPage() {
   const router = useRouter()
@@ -20,8 +21,10 @@ export default function NovoPeriodoPage() {
     const result = await criarPeriodo(formData)
     if (result.error) {
       setError(result.error)
+      toast.error("Erro: " + result.error)
       setIsLoading(false)
     } else {
+      toast.success("Salvo com sucesso")
       router.push('/admin/periodos')
     }
   }

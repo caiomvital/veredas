@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { criarComunicado } from '@/lib/actions/comunicados'
 import { gerarAvisosComunicado } from '@/lib/actions/avisos-whatsapp'
 import { listarTurmas } from '@/lib/actions/turmas'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -66,7 +67,9 @@ export default function NovoComunicadoPage() {
     fd.set('data_publicacao', dataPublicacao)
     fd.set('destinatarios', JSON.stringify(destinatarios))
     const res = await criarComunicado(fd)
-    if (res.error) { setError(res.error); setIsSaving(false); return }
+    if (res.error) { setError(res.error); toast.error("Erro: " + res.error); setIsSaving(false); return }
+
+    toast.success("Comunicado criado com sucesso")
 
     // Notificar responsáveis por WhatsApp se marcado
     if (notificarWhatsApp && res.data?.id) {

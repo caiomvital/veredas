@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
+import { toast } from 'sonner'
 import type { Aluno } from '@/types/entities'
 
 export default function EditarAlunoPage() {
@@ -39,8 +40,10 @@ export default function EditarAlunoPage() {
     const result = await atualizarAluno(id, formData)
     if (result.error) {
       setError(result.error)
+      toast.error("Erro: " + result.error)
       setIsSaving(false)
     } else {
+      toast.success("Aluno atualizado com sucesso")
       router.push('/admin/alunos')
     }
   }
@@ -49,8 +52,13 @@ export default function EditarAlunoPage() {
     if (!confirm('Tem certeza que deseja inativar este aluno?')) return
     setError(null)
     const result = await excluirAluno(id)
-    if (result.error) setError(result.error)
-    else router.push('/admin/alunos')
+    if (result.error) {
+      setError(result.error)
+      toast.error("Erro: " + result.error)
+    } else {
+      toast.success("Aluno inativado com sucesso")
+      router.push('/admin/alunos')
+    }
   }
 
   if (isLoading) {

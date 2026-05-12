@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Select } from '@/components/ui/select'
 import { Plus, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import type { Responsavel, Aluno, AlunoResponsavel } from '@/types/entities'
 
 export default function EditarResponsavelPage() {
@@ -53,8 +54,10 @@ export default function EditarResponsavelPage() {
     const result = await atualizarResponsavel(id, formData)
     if (result.error) {
       setError(result.error)
+      toast.error("Erro: " + result.error)
       setIsSaving(false)
     } else {
+      toast.success("Salvo com sucesso")
       router.push('/admin/responsaveis')
     }
   }

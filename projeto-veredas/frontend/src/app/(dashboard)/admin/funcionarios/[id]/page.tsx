@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
+import { toast } from 'sonner'
 import type { Funcionario } from '@/types/entities'
 
 export default function EditarFuncionarioPage() {
@@ -36,8 +37,10 @@ export default function EditarFuncionarioPage() {
     const result = await atualizarFuncionario(id, formData)
     if (result.error) {
       setError(result.error)
+      toast.error("Erro: " + result.error)
       setIsSaving(false)
     } else {
+      toast.success("Salvo com sucesso")
       router.push('/admin/funcionarios')
     }
   }
@@ -46,8 +49,13 @@ export default function EditarFuncionarioPage() {
     if (!confirm('Tem certeza que deseja inativar este funcionário?')) return
     setError(null)
     const result = await excluirFuncionario(id)
-    if (result.error) setError(result.error)
-    else router.push('/admin/funcionarios')
+    if (result.error) {
+      setError(result.error)
+      toast.error("Erro: " + result.error)
+    } else {
+      toast.success("Funcionário inativado com sucesso")
+      router.push('/admin/funcionarios')
+    }
   }
 
   if (isLoading) {

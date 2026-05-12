@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
+import { toast } from 'sonner'
 import type { Turma } from '@/types/entities'
 
 const SERIES = [
@@ -51,8 +52,10 @@ export default function EditarTurmaPage() {
     const result = await atualizarTurma(id, formData)
     if (result.error) {
       setError(result.error)
+      toast.error("Erro: " + result.error)
       setIsSaving(false)
     } else {
+      toast.success("Salvo com sucesso")
       router.push('/admin/turmas')
     }
   }
@@ -60,8 +63,13 @@ export default function EditarTurmaPage() {
   async function handleDelete() {
     if (!confirm('Tem certeza que deseja desativar esta turma?')) return
     const result = await excluirTurma(id)
-    if (result.error) setError(result.error)
-    else router.push('/admin/turmas')
+    if (result.error) {
+      setError(result.error)
+      toast.error("Erro: " + result.error)
+    } else {
+      toast.success("Turma desativada com sucesso")
+      router.push('/admin/turmas')
+    }
   }
 
   if (isLoading) return <div className="p-8 text-center text-sm text-gray-400">Carregando...</div>

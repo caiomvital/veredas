@@ -7,6 +7,7 @@ import { getPeriodo, atualizarPeriodo, excluirPeriodo } from '@/lib/actions/peri
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
+import { toast } from 'sonner'
 import type { PeriodoLetivo } from '@/types/entities'
 
 export default function EditarPeriodoPage() {
@@ -38,8 +39,10 @@ export default function EditarPeriodoPage() {
     const result = await atualizarPeriodo(id, formData)
     if (result.error) {
       setError(result.error)
+      toast.error("Erro: " + result.error)
       setIsSaving(false)
     } else {
+      toast.success("Salvo com sucesso")
       router.push('/admin/periodos')
     }
   }
@@ -48,8 +51,13 @@ export default function EditarPeriodoPage() {
     if (!confirm('Excluir este período letivo?')) return
     setError(null)
     const result = await excluirPeriodo(id)
-    if (result.error) setError(result.error)
-    else router.push('/admin/periodos')
+    if (result.error) {
+      setError(result.error)
+      toast.error("Erro: " + result.error)
+    } else {
+      toast.success("Período excluído com sucesso")
+      router.push('/admin/periodos')
+    }
   }
 
   if (isLoading) {

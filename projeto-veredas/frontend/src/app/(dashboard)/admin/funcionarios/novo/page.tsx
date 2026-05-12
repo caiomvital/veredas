@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { toast } from 'sonner'
 
 export default function NovoFuncionarioPage() {
   const router = useRouter()
@@ -20,8 +21,10 @@ export default function NovoFuncionarioPage() {
     const result = await criarFuncionario(formData)
     if (result.error) {
       setError(result.error)
+      toast.error("Erro: " + result.error)
       setIsLoading(false)
     } else {
+      toast.success("Salvo com sucesso")
       router.push('/admin/funcionarios')
     }
   }

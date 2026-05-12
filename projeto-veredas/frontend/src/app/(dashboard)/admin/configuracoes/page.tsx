@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { getEscolaConfig, salvarEscolaConfig } from '@/lib/actions/escola-config'
+import { toast } from 'sonner'
 import { Save, Building, Palette, Calendar, GraduationCap, Share2, FileText, Loader2 } from 'lucide-react'
 
 const NIVEIS_OPCOES = [
@@ -56,8 +57,10 @@ export default function AdminConfiguracoes() {
     const res = await salvarEscolaConfig(form)
     if (res.error) {
       setMessage({ type: 'error', text: res.error })
+      toast.error("Erro: " + res.error)
     } else {
       setMessage({ type: 'success', text: 'Configurações salvas com sucesso!' })
+      toast.success("Configurações salvas com sucesso")
       // Recarregar dados
       const fresh = await getEscolaConfig()
       if (fresh.data) setData(fresh.data)

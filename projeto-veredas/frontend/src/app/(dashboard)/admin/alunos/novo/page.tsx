@@ -7,6 +7,7 @@ import { criarAluno } from '@/lib/actions/alunos'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
+import { toast } from 'sonner'
 
 export default function NovoAlunoPage() {
   const router = useRouter()
@@ -19,8 +20,10 @@ export default function NovoAlunoPage() {
     const result = await criarAluno(formData)
     if (result.error) {
       setError(result.error)
+      toast.error("Erro: " + result.error)
       setIsLoading(false)
     } else {
+      toast.success("Aluno cadastrado com sucesso")
       router.push('/admin/alunos')
     }
   }

@@ -7,7 +7,9 @@ import { DataTable, type Column } from '@/components/ui/data-table'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import type { PeriodoLetivo } from '@/types/entities'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 const columns: Column<PeriodoLetivo>[] = [
   { key: 'nome', label: 'Nome', sortable: true },
@@ -27,6 +29,9 @@ export default function PeriodosPage() {
   const [data, setData] = useState<PeriodoLetivo[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
     setIsLoading(true)
@@ -39,11 +44,25 @@ export default function PeriodosPage() {
 
   useEffect(() => { fetchData() }, [fetchData])
 
-  async function handleDelete(id: string) {
-    if (!confirm('Excluir este período letivo?')) return
-    const result = await excluirPeriodo(id)
-    if (result.error) setError(result.error)
-    else fetchData()
+  function handleDelete(id: string) {
+    setSelectedId(id)
+    setShowConfirm(true)
+  }
+
+  async function confirmDelete() {
+    if (!selectedId) return
+    setIsDeleting(true)
+    const result = await excluirPeriodo(selectedId)
+    setIsDeleting(false)
+    setShowConfirm(false)
+    setSelectedId(null)
+    if (result.error) {
+      setError(result.error)
+      toast.error("Erro: " + result.error)
+    } else {
+      toast.success("Período excluído com sucesso")
+      fetchData()
+    }
   }
 
   return (
@@ -78,6 +97,16 @@ export default function PeriodosPage() {
             </Button>
           </div>
         )}
+      />
+      <ConfirmDialog
+        open={showConfirm}
+        title="Confirmar Exclusão"
+        message="Tem certeza que deseja excluir este período letivo? Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        variant="danger"
+        isLoading={isDeleting}
+        onConfirm={confirmDelete}
+        onCancel={() => { setShowConfirm(false); setSelectedId(null); }}
       />
     </div>
   )
