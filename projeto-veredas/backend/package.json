@@ -1,0 +1,14 @@
+{
+  "name": "veredas-backend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "seed": "node scripts/seed-demo.js",
+    "migrate": "node scripts/run-migrations.js",
+    "setup-admin": "node scripts/setup-admin.js"
+  },
+  "dependencies": {
+    "pg": "^8.20.0",
+    "@supabase/supabase-js": "^2.43.0"
+  }
+}
