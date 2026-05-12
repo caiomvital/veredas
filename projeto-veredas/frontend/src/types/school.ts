@@ -11,6 +11,10 @@ export interface Escola {
   config_frequencia: ConfigFrequencia
   modulos_ativos: ModulosAtivos
   textos: TextosEscola
+  diretor_nome: string | null
+  diretor_cargo: string | null
+  ano_letivo_atual: number | null
+  niveis_ensino: string[]
   ativo: boolean
   created_at: string
   updated_at: string
@@ -63,6 +67,13 @@ export interface TextosEscola {
   titulo_boletim?: string
   rodape_boletim?: string
   template_declaracao?: string
+  mensagem_boasvindas?: string
+  slogan?: string
+  sobre?: string
+  missao?: string
+  valores?: { titulo: string; descricao: string }[]
+  niveis?: { nome: string; idade: string; icone: string; descricao: string; destaques: string[] }[]
+  rodape?: string
 }
 
 export type Perfil = 'admin' | 'coordenador' | 'secretaria' | 'professor' | 'responsavel'
@@ -79,4 +90,8 @@ export interface SchoolConfig {
   config_frequencia: ConfigFrequencia
   modulos_ativos: ModulosAtivos
   textos: TextosEscola
+  diretor_nome: string | null
+  diretor_cargo: string | null
+  ano_letivo_atual: number | null
+  niveis_ensino: string[]
 }

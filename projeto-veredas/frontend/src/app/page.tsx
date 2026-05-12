@@ -1,30 +1,54 @@
-'use client'
-
-import { useState } from 'react'
+import { cookies } from 'next/headers'
 import Link from 'next/link'
-import { schoolConfig } from '@/lib/schoolConfig'
+import { createClient } from '@/lib/supabase/server'
+import { MobileMenu } from '@/components/landing/MobileMenu'
+import { schoolConfig as fallbackConfig } from '@/lib/schoolConfig'
+import type { Escola } from '@/types/school'
 
-const cfg = schoolConfig
-const iv = cfg.identidadeVisual
-const txt = cfg.textos
+async function getEscolaData(): Promise<Record<string, unknown>> {
+  const cookieStore = await cookies()
+  const slug = cookieStore.get('escola_slug')?.value
 
-// ── SVG Icons (inline, sem dependências externas) ──
+  const escolaSlug = slug ?? process.env.NEXT_PUBLIC_SCHOOL_ID ?? 'escola-teste'
 
-function MenuIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="18" x2="20" y2="18" />
-    </svg>
-  )
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('escolas')
+      .select('*')
+      .eq('slug', escolaSlug)
+      .eq('ativo', true)
+      .single()
+
+    if (!error && data) {
+      const row = data as unknown as Record<string, unknown>
+      return row
+    }
+  } catch {
+    // fallback to static config
+  }
+
+  // fallback: mapear schoolConfig para formato similar ao banco
+  return {}
 }
 
-function XIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  )
+const links = [
+  { label: 'Início', href: '#' },
+  { label: 'Sobre', href: '#sobre' },
+  { label: 'Diferenciais', href: '#diferenciais' },
+  { label: 'Níveis', href: '#niveis' },
+  { label: 'Contato', href: '#contato' },
+]
+
+function getNested(obj: Record<string, unknown> | null, path: string): unknown {
+  if (!obj || Object.keys(obj).length === 0) return undefined
+  return path.split('.').reduce((acc: unknown, key) => {
+    if (acc && typeof acc === 'object') return (acc as Record<string, unknown>)[key]
+    return undefined
+  }, obj)
 }
+
+// ── SVG Icons (inline) ──
 
 function HeartIcon() {
   return (
@@ -92,31 +116,24 @@ function MapPinIcon() {
 
 // ── Seções ──
 
-function Header() {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const links = [
-    { label: 'Início', href: '#' },
-    { label: 'Sobre', href: '#sobre' },
-    { label: 'Diferenciais', href: '#diferenciais' },
-    { label: 'Níveis', href: '#niveis' },
-    { label: 'Contato', href: '#contato' },
-  ]
+function Header({ data }: { data: Record<string, unknown> }) {
+  const nome = (data?.nome as string) ?? fallbackConfig.nome
+  const nomeCurto = (data?.slug as string)?.slice(0, 3).toUpperCase() ?? 'ZAB'
+  const iv = data?.identidade_visual as Record<string, string> | undefined
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-stone-200/60">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-8">
-        {/* Logo */}
         <Link href="#" className="flex items-center gap-3 group">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zab-verde text-white text-sm font-bold tracking-wider group-hover:bg-zab-verde-hover transition-colors">
-            ZAB
+            {nomeCurto}
           </div>
           <div className="hidden sm:block">
-            <p className="text-sm font-bold text-zab-verde leading-tight">Grupo ZAB</p>
-            <p className="text-[10px] text-zab-texto-claro leading-tight">de Educação</p>
+            <p className="text-sm font-bold text-zab-verde leading-tight">{nomeCurto}</p>
+            <p className="text-[10px] text-zab-texto-claro leading-tight">{nome}</p>
           </div>
         </Link>
 
-        {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-1">
           {links.map((l) => (
             <a key={l.href} href={l.href}
@@ -130,35 +147,19 @@ function Header() {
           </Link>
         </nav>
 
-        {/* Mobile toggle */}
-        <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden p-2 text-zab-texto" aria-label="Menu">
-          {menuOpen ? <XIcon /> : <MenuIcon />}
-        </button>
+        <MobileMenu links={links} />
       </div>
-
-      {/* Mobile menu */}
-      {menuOpen && (
-        <div className="md:hidden border-t border-stone-200 bg-white px-4 py-4 space-y-1">
-          {links.map((l) => (
-            <a key={l.href} href={l.href} onClick={() => setMenuOpen(false)}
-              className="block px-3 py-2 text-sm font-medium text-zab-texto hover:text-zab-verde hover:bg-zab-verde-claro rounded-md transition-colors">
-              {l.label}
-            </a>
-          ))}
-          <Link href="/login" onClick={() => setMenuOpen(false)}
-            className="block mt-3 text-center rounded-lg border-2 border-zab-dourado px-4 py-2 text-sm font-semibold text-zab-dourado hover:bg-zab-dourado hover:text-white transition-all duration-200">
-            Acessar o Sistema
-          </Link>
-        </div>
-      )}
     </header>
   )
 }
 
-function Hero() {
+function Hero({ data }: { data: Record<string, unknown> }) {
+  const textos = data?.textos as Record<string, unknown> | undefined
+  const slogan = (textos?.slogan as string) ?? fallbackConfig.textos.slogan
+  const anos = (data?.ano_letivo_atual as number) ?? 30
+
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-zab-verde via-zab-verde-hover to-zab-verde-escuro">
-      {/* Decorative shapes */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
         <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-zab-dourado/10 blur-3xl" />
@@ -167,10 +168,9 @@ function Hero() {
 
       <div className="relative mx-auto max-w-7xl px-4 lg:px-8 py-24 md:py-32">
         <div className="max-w-3xl">
-          {/* Badge */}
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur-sm px-4 py-1.5 text-sm font-medium text-zab-verde-claro mb-6 border border-white/10">
             <span className="h-2 w-2 rounded-full bg-zab-dourado" />
-            Mais de 30 anos de história
+            Mais de {anos} anos de história
           </span>
 
           <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.1] tracking-tight text-white mb-6">
@@ -182,8 +182,7 @@ function Hero() {
           </h1>
 
           <p className="text-lg md:text-xl text-zab-verde-claro-2 max-w-2xl mb-10 leading-relaxed">
-            {txt.slogan}. Fundado por Pedagogas, Psicólogas e Professoras, o Grupo ZAB oferece
-            Educação Infantil e Ensino Fundamental em Olinda — PE.
+            {slogan}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
@@ -198,10 +197,9 @@ function Hero() {
           </div>
         </div>
 
-        {/* Decorative stats */}
         <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl">
           {[
-            { num: '30+', label: 'Anos de experiência' },
+            { num: `${anos}+`, label: 'Anos de experiência' },
             { num: '600+', label: 'Alunos atendidos' },
             { num: '40+', label: 'Educadores' },
             { num: '100%', label: 'Acolhimento' },
@@ -217,12 +215,16 @@ function Hero() {
   )
 }
 
-function Sobre() {
+function Sobre({ data }: { data: Record<string, unknown> }) {
+  const textos = data?.textos as Record<string, unknown> | undefined
+  const sobre = (textos?.sobre as string) ?? fallbackConfig.textos.sobre
+  const missao = (textos?.missao as string) ?? fallbackConfig.textos.missao
+  const valores = (textos?.valores as Array<{ titulo: string; descricao: string }>) ?? fallbackConfig.textos.valores
+
   return (
     <section id="sobre" className="py-20 md:py-28 bg-white">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
-          {/* Left - decorative image placeholder */}
           <div className="relative order-2 md:order-1">
             <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-zab-verde-claro to-zab-dourado-claro aspect-[4/3]">
               <div className="absolute inset-0 flex items-center justify-center">
@@ -231,14 +233,12 @@ function Sobre() {
                   <p className="mt-4 text-lg font-semibold text-zab-verde">Cultivando futuros</p>
                 </div>
               </div>
-              {/* Decorative dots */}
               <div className="absolute top-4 left-4 flex gap-2">
                 <span className="h-2 w-2 rounded-full bg-zab-verde/20" />
                 <span className="h-2 w-2 rounded-full bg-zab-dourado/20" />
                 <span className="h-2 w-2 rounded-full bg-zab-verde/20" />
               </div>
             </div>
-            {/* Floating card */}
             <div className="absolute -bottom-6 -right-6 bg-white rounded-xl shadow-xl p-4 border border-stone-100 hidden md:block">
               <div className="flex items-center gap-3">
                 <span className="text-3xl">🧑‍🏫</span>
@@ -250,32 +250,30 @@ function Sobre() {
             </div>
           </div>
 
-          {/* Right - content */}
           <div className="order-1 md:order-2">
             <span className="inline-flex items-center rounded-full bg-zab-verde-claro px-3 py-1 text-xs font-semibold text-zab-verde tracking-wider uppercase mb-4">
               Quem Somos
             </span>
             <h2 className="text-3xl md:text-4xl font-bold text-zab-verde leading-tight mb-6">
               Uma história construída com{' '}
-            <span className="text-zab-dourado">dedicação</span>
-          </h2>
-          <div className="space-y-4 text-zab-texto leading-relaxed">
-            <p>{txt.sobre}</p>
-            <p>{txt.missao}</p>
-          </div>
+              <span className="text-zab-dourado">dedicação</span>
+            </h2>
+            <div className="space-y-4 text-zab-texto leading-relaxed">
+              <p>{sobre}</p>
+              <p>{missao}</p>
+            </div>
 
-          {/* Values */}
-          <div className="mt-8 grid grid-cols-2 gap-4">
-            {txt.valores.map((v) => (
-              <div key={v.titulo} className="rounded-xl bg-zab-creme border border-stone-200 p-4">
-                <p className="font-bold text-zab-verde text-sm">{v.titulo}</p>
-                <p className="text-xs text-zab-texto-claro mt-1 leading-relaxed">{v.descricao}</p>
-              </div>
-            ))}
+            <div className="mt-8 grid grid-cols-2 gap-4">
+              {valores.map((v: { titulo: string; descricao: string }) => (
+                <div key={v.titulo} className="rounded-xl bg-zab-creme border border-stone-200 p-4">
+                  <p className="font-bold text-zab-verde text-sm">{v.titulo}</p>
+                  <p className="text-xs text-zab-texto-claro mt-1 leading-relaxed">{v.descricao}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
-    </div>
     </section>
   )
 }
@@ -323,7 +321,10 @@ function Diferenciais() {
   )
 }
 
-function Niveis() {
+function Niveis({ data }: { data: Record<string, unknown> }) {
+  const textos = data?.textos as Record<string, unknown> | undefined
+  const niveis = (textos?.niveis as Array<{ nome: string; idade: string; icone: string; descricao: string; destaques: string[] }>) ?? fallbackConfig.textos.niveis
+
   return (
     <section id="niveis" className="py-20 md:py-28 bg-white">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
@@ -341,16 +342,14 @@ function Niveis() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 md:gap-8">
-          {txt.niveis.map((nivel) => (
+          {niveis.map((nivel) => (
             <div key={nivel.nome}
               className="group rounded-2xl border border-stone-200 bg-white overflow-hidden hover:shadow-xl transition-all duration-300">
-              {/* Header */}
               <div className="bg-gradient-to-r from-zab-verde to-zab-verde-hover p-6 text-center">
                 <span className="text-5xl block mb-3">{nivel.icone}</span>
                 <h3 className="text-lg font-bold text-white">{nivel.nome}</h3>
                 <p className="text-sm text-zab-verde-claro-3 mt-1">{nivel.idade}</p>
               </div>
-              {/* Body */}
               <div className="p-6">
                 <p className="text-sm text-zab-texto leading-relaxed mb-5">{nivel.descricao}</p>
                 <ul className="space-y-2">
@@ -370,7 +369,12 @@ function Niveis() {
   )
 }
 
-function Contato() {
+function Contato({ data }: { data: Record<string, unknown> }) {
+  const endereco = data?.endereco as Record<string, string> | undefined ?? fallbackConfig.endereco
+  const contato = data?.contato as Record<string, unknown> | undefined ?? fallbackConfig.contato
+  const telefone = contato?.telefone as string ?? fallbackConfig.contato.telefone
+  const email = contato?.email as string ?? fallbackConfig.contato.email
+
   return (
     <section id="contato" className="py-20 md:py-28 bg-gradient-to-br from-zab-verde to-zab-footer">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
@@ -388,41 +392,37 @@ function Contato() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-          {/* Endereço */}
           <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-6 text-center hover:bg-white/10 transition-colors">
             <div className="h-12 w-12 rounded-xl bg-zab-dourado/20 flex items-center justify-center mx-auto mb-4 text-zab-amber">
               <MapPinIcon />
             </div>
             <h3 className="font-bold text-white mb-2">Endereço</h3>
             <p className="text-sm text-zab-verde-claro-3 leading-relaxed">
-              {cfg.endereco.rua}, {cfg.endereco.numero}<br />
-              {cfg.endereco.bairro} — {cfg.endereco.cidade}/{cfg.endereco.uf}
+              {endereco.rua}, {endereco.numero}<br />
+              {endereco.bairro} — {endereco.cidade}/{endereco.uf}
             </p>
           </div>
 
-          {/* Telefone */}
           <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-6 text-center hover:bg-white/10 transition-colors">
             <div className="h-12 w-12 rounded-xl bg-zab-dourado/20 flex items-center justify-center mx-auto mb-4 text-zab-amber">
               <PhoneIcon />
             </div>
             <h3 className="font-bold text-white mb-2">Telefone</h3>
-            <p className="text-sm text-zab-verde-claro-3 leading-relaxed">{cfg.contato.telefone}</p>
+            <p className="text-sm text-zab-verde-claro-3 leading-relaxed">{telefone}</p>
           </div>
 
-          {/* Email */}
           <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-6 text-center hover:bg-white/10 transition-colors">
             <div className="h-12 w-12 rounded-xl bg-zab-dourado/20 flex items-center justify-center mx-auto mb-4 text-zab-amber">
               <MailIcon />
             </div>
             <h3 className="font-bold text-white mb-2">E-mail</h3>
-            <p className="text-sm text-zab-verde-claro-3 leading-relaxed">{cfg.contato.email}</p>
+            <p className="text-sm text-zab-verde-claro-3 leading-relaxed">{email}</p>
           </div>
         </div>
 
-        {/* CTA */}
         <div className="mt-12 text-center">
           <p className="text-zab-verde-claro-2 text-sm mb-6">Agende uma visita e conheça nossa estrutura</p>
-          <a href={`mailto:${cfg.contato.email}`}
+          <a href={`mailto:${email}`}
             className="inline-flex h-12 items-center justify-center rounded-xl bg-zab-dourado px-8 text-base font-bold text-white hover:bg-zab-dourado-hover transition-all duration-200 shadow-lg shadow-zab-dourado/25">
             Entrar em contato
           </a>
@@ -432,20 +432,28 @@ function Contato() {
   )
 }
 
-function Footer() {
+function Footer({ data }: { data: Record<string, unknown> }) {
+  const textos = data?.textos as Record<string, unknown> | undefined
+  const nome = (data?.nome as string) ?? fallbackConfig.nome
+  const nomeCurto = (data?.slug as string)?.slice(0, 3).toUpperCase() ?? 'ZAB'
+  const rodape = (textos?.rodape as string) ?? fallbackConfig.textos.rodape
+
+  const redesSociais: Array<{ tipo: string; url: string }> =
+    ((data?.contato as Record<string, unknown>)?.redes_sociais as Array<{ tipo: string; url: string }>) ??
+    fallbackConfig.redesSociais
+
   return (
     <footer className="bg-zab-verde-footer text-zab-verde-claro-3">
       <div className="mx-auto max-w-7xl px-4 lg:px-8 py-12">
         <div className="grid md:grid-cols-3 gap-8">
-          {/* Logo + desc */}
           <div>
             <div className="flex items-center gap-3 mb-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zab-verde text-white text-sm font-bold tracking-wider">
-                ZAB
+                {nomeCurto}
               </div>
               <div>
-                <p className="text-sm font-bold text-white">Grupo ZAB</p>
-                <p className="text-[10px] text-zab-texto-claro">de Educação</p>
+                <p className="text-sm font-bold text-white">{nomeCurto}</p>
+                <p className="text-[10px] text-zab-texto-claro">{nome}</p>
               </div>
             </div>
             <p className="text-sm text-zab-texto-claro leading-relaxed max-w-xs">
@@ -453,7 +461,6 @@ function Footer() {
             </p>
           </div>
 
-          {/* Links rápidos */}
           <div>
             <h4 className="text-sm font-bold text-white mb-4">Navegação</h4>
             <ul className="space-y-2 text-sm">
@@ -468,11 +475,10 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Redes */}
           <div>
             <h4 className="text-sm font-bold text-white mb-4">Redes Sociais</h4>
             <div className="space-y-2 text-sm">
-              {cfg.redesSociais.map((r) => (
+              {redesSociais.map((r) => (
                 <a key={r.tipo} href={r.url} target="_blank" rel="noopener noreferrer"
                   className="block text-zab-texto-claro hover:text-zab-amber transition-colors capitalize">
                   {r.tipo}
@@ -483,7 +489,7 @@ function Footer() {
         </div>
 
         <div className="mt-10 pt-8 border-t border-white/5 text-center text-xs text-zab-texto-claro">
-          <p>{txt.rodape}</p>
+          <p>{rodape}</p>
         </div>
       </div>
     </footer>
@@ -492,18 +498,20 @@ function Footer() {
 
 // ── Page ──
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const data = await getEscolaData()
+
   return (
     <>
-      <Header />
+      <Header data={data} />
       <main>
-        <Hero />
-        <Sobre />
+        <Hero data={data} />
+        <Sobre data={data} />
         <Diferenciais />
-        <Niveis />
-        <Contato />
+        <Niveis data={data} />
+        <Contato data={data} />
       </main>
-      <Footer />
+      <Footer data={data} />
     </>
   )
 }

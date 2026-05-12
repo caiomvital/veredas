@@ -22,6 +22,7 @@ import {
   Calendar,
   DollarSign,
   MessageCircle,
+  Settings,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { getContagemPendentes } from '@/lib/actions/avisos-whatsapp'
@@ -61,6 +62,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Avisos WhatsApp', href: '/secretaria/avisos-whatsapp', icon: <MessageCircle size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Comunicados', href: '/comunicados', icon: <Bell size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
   { label: 'Calendário', href: '/calendario', icon: <Calendar size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
+  { label: 'Configurações', href: '/admin/configuracoes', icon: <Settings size={20} />, perfis: ['admin'] },
 ]
 
 export function Sidebar() {

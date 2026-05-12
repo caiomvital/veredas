@@ -25,10 +25,48 @@ const PERMISSOES_ROTA_ESPECIFICAS: Record<string, Perfil[]> = {
   '/secretaria/avisos-whatsapp': ['admin', 'secretaria'],
 }
 
+const ESCOLA_SLUG_COOKIE = 'escola_slug'
+
+/**
+ * Extrai o subdomínio do host.
+ * zab.projetoveredas.com.br → "zab"
+ * projetoveredas.com.br → null (domínio raiz)
+ * localhost → "__localhost__"
+ */
+function extractSubdomain(host: string): string | null {
+  if (!host) return null
+  host = host.split(':')[0]
+  if (host === 'localhost' || host === '127.0.0.1') return '__localhost__'
+
+  const parts = host.split('.').filter(Boolean)
+  let idx = 0
+  if (parts[0] === 'www') idx = 1
+
+  const isKnownApex = host.endsWith('projetoveredas.com.br')
+
+  if (isKnownApex && parts.length - idx > 3) return parts[idx]
+  if (!isKnownApex && parts.length - idx > 2) return parts[idx]
+
+  return null
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const host = request.headers.get('host') ?? ''
 
-  // Landing pages são públicas
+  // ─── Detecção de subdomínio ───
+  const subdomain = extractSubdomain(host)
+
+  // Se for subdomínio de escola (não localhost), setar cookie e continuar
+  let response = NextResponse.next()
+  if (subdomain && subdomain !== '__localhost__') {
+    response.cookies.set(ESCOLA_SLUG_COOKIE, subdomain, {
+      maxAge: 60 * 60 * 24,
+      path: '/',
+    })
+  }
+
+  // ─── Landing pages públicas ───
   if (
     pathname === '/' ||
     pathname === '/login' ||
@@ -36,10 +74,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/api') ||
     pathname === '/favicon.ico'
   ) {
-    return NextResponse.next()
+    return response
   }
-
-  let response = NextResponse.next()
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -62,17 +98,14 @@ export async function middleware(request: NextRequest) {
 
   const { data: { session } } = await supabase.auth.getSession()
 
-  // Rotas protegidas sem sessão → redirect para login
   if (!session) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
-  // Verificar permissão de perfil para a rota
   const perfil = session.user.app_metadata.perfil as Perfil | undefined
 
-  // Verificar primeiro se há permissão específica para a rota exata
   const perfisPermitidosEspecificos = PERMISSOES_ROTA_ESPECIFICAS[pathname]
 
   if (perfisPermitidosEspecificos) {
@@ -81,7 +114,6 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL(destino, request.url))
     }
   } else {
-    // Fallback: verificar permissão pela rota base
     const rotaBase = '/' + pathname.split('/')[1]
     const perfisPermitidos = PERMISSOES_ROTA[rotaBase]
 

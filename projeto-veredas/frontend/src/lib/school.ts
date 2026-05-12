@@ -42,6 +42,10 @@ function mapRowToConfig(row: Record<string, unknown>): SchoolConfig {
       portal_responsavel: ma?.portal_responsavel ?? false,
     },
     textos: row.textos as SchoolConfig['textos'] ?? {},
+    diretor_nome: (row.diretor_nome as string) ?? null,
+    diretor_cargo: (row.diretor_cargo as string) ?? null,
+    ano_letivo_atual: (row.ano_letivo_atual as number) ?? null,
+    niveis_ensino: (row.niveis_ensino as string[]) ?? [],
   }
 }
 

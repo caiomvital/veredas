@@ -23,7 +23,12 @@ export async function listarConfigMensalidades(anoLetivo?: number): Promise<Acti
 export async function salvarConfigMensalidade(formData: FormData): Promise<ActionResult<null>> {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const escolaId = user?.app_metadata?.escola_id as string | undefined
+    if (!escolaId) return { data: null, error: 'Escola não identificada' }
+
     const dados = {
+      escola_id: escolaId,
       serie: formData.get('serie') as string,
       ano_letivo: parseInt(formData.get('ano_letivo') as string),
       valor: parseFloat(formData.get('valor') as string),
@@ -76,10 +81,14 @@ export async function criarLancamentoExtra(formData: FormData): Promise<ActionRe
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
+    const escolaId = user?.app_metadata?.escola_id as string | undefined
+    if (!escolaId) return { data: null, error: 'Escola não identificada' }
+
     const { data: func } = await supabase
       .from('funcionarios').select('id').eq('usuario_id', user?.id).single()
 
     const dados = {
+      escola_id: escolaId,
       aluno_id: (formData.get('aluno_id') as string) || null,
       tipo: 'extra' as const,
       descricao: formData.get('descricao') as string,

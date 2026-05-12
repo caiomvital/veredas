@@ -4,6 +4,12 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { createClient } from '@/lib/supabase/client'
 import type { SchoolConfig } from '@/types/school'
 
+function getCookie(name: string): string | undefined {
+  if (typeof document === 'undefined') return undefined
+  const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`))
+  return match?.[2]
+}
+
 interface SchoolContextValue {
   config: SchoolConfig | null
   isLoading: boolean
@@ -77,7 +83,7 @@ export function SchoolProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true)
       setError(null)
       const supabase = createClient()
-      const slug = process.env.NEXT_PUBLIC_SCHOOL_ID ?? 'escola-teste'
+      const slug = getCookie('escola_slug') || process.env.NEXT_PUBLIC_SCHOOL_ID || 'escola-teste'
 
       const { data: raw, error: err } = await supabase
         .from('escolas')
@@ -126,6 +132,10 @@ export function SchoolProvider({ children }: { children: React.ReactNode }) {
           portal_responsavel: ma.portal_responsavel ?? false,
         },
         textos: data.textos as SchoolConfig['textos'] ?? {},
+        diretor_nome: (data.diretor_nome as string) ?? null,
+        diretor_cargo: (data.diretor_cargo as string) ?? null,
+        ano_letivo_atual: (data.ano_letivo_atual as number) ?? null,
+        niveis_ensino: (data.niveis_ensino as string[]) ?? [],
       }
 
       setConfig(cfg)
