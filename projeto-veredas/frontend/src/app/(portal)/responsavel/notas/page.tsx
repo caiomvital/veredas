@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { getAlunosDoResponsavel, getNotasAluno, type AlunoResponsavelView } from '@/lib/actions/responsavel'
 import type { Nota } from '@/types/entities'
 import { useSearchParams } from 'next/navigation'
 
-export default function ResponsavelNotasPage() {
+function NotasContent() {
   const searchParams = useSearchParams()
   const alunoIdParam = searchParams.get('aluno')
   const [alunos, setAlunos] = useState<AlunoResponsavelView[]>([])
@@ -76,5 +76,13 @@ export default function ResponsavelNotasPage() {
         </>
       )}
     </div>
+  )
+}
+
+export default function ResponsavelNotasPage() {
+  return (
+    <Suspense fallback={<div className="animate-pulse h-20 rounded-xl bg-stone-200" />}>
+      <NotasContent />
+    </Suspense>
   )
 }

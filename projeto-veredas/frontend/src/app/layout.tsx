@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { SchoolProvider } from '@/hooks/useSchool'
+import { ToastProvider } from '@/components/ui/toast-provider'
 
 export const metadata: Metadata = {
   title: 'Veredas - Gestão Escolar',
@@ -13,6 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <SchoolProvider>
           {children}
+          <ToastProvider />
         </SchoolProvider>
       </body>
     </html>

@@ -56,7 +56,7 @@ export default function FinanceiroPage() {
   const [selectedLancamento, setSelectedLancamento] = useState<LancamentoFinanceiro | null>(null)
   const [pagamentoData, setPagamentoData] = useState(new Date().toISOString().split('T')[0])
   const [isBaixando, setIsBaixando] = useState(false)
-  const [baixarResult, setBaixarResult] = useState<{ multa: number } | null>(null)
+  const [baixarResult, setBaixarResult] = useState<{ multa: number; numeroRecibo: string | null } | null>(null)
 
   // ---- Extra form ----
   const [extraAlunoId, setExtraAlunoId] = useState('')
@@ -142,7 +142,7 @@ export default function FinanceiroPage() {
     const res = await baixarPagamento(selectedLancamento.id, pagamentoData)
     if (res.error) setError(res.error)
     else {
-      setBaixarResult(res.data ?? { multa: 0 })
+      setBaixarResult(res.data ?? { multa: 0, numeroRecibo: null })
       setTimeout(() => { setShowBaixarModal(false); setBaixarResult(null) }, 2000)
       fetchLancamentos(activeTab)
     }
@@ -421,9 +421,12 @@ export default function FinanceiroPage() {
                 onChange={(e) => setPagamentoData(e.target.value)}
               />
               {baixarResult !== null && (
-                <div className="rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-700">
-                  Pagamento registrado!
-                  {baixarResult.multa > 0 && ` Multa de ${formatCurrency(baixarResult.multa)} aplicada.`}
+                <div className="rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-700 space-y-1">
+                  <p className="font-medium">Pagamento registrado!</p>
+                  {baixarResult.multa > 0 && <p>Multa de {formatCurrency(baixarResult.multa)} aplicada.</p>}
+                  {baixarResult.numeroRecibo && (
+                    <p>Recibo: <strong>{baixarResult.numeroRecibo}</strong></p>
+                  )}
                 </div>
               )}
               <div className="flex justify-end gap-2 pt-2">

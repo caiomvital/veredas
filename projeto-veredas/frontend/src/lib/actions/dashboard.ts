@@ -144,6 +144,7 @@ export async function getSecretariaDashboard(): Promise<ActionResult<SecretariaD
 
 export interface MinhaTurma {
   id: string
+  turma_id: string
   turma_codigo: string
   turma_serie: string
   turma_turno: string
@@ -214,7 +215,8 @@ export async function getProfessorDashboard(): Promise<ActionResult<ProfessorDat
         if (vistas.has(key)) continue
         vistas.add(key)
         minhasTurmas.push({
-          id: t.turma_id,
+          id: t.id,
+          turma_id: t.turma_id,
           turma_codigo: t.turmas.codigo,
           turma_serie: t.turmas.serie,
           turma_turno: t.turmas.turno,

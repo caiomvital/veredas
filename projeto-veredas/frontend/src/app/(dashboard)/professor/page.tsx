@@ -73,7 +73,7 @@ export default function ProfessorDashboard() {
           ) : data?.minhasTurmas && data.minhasTurmas.length > 0 ? (
             <div className="divide-y divide-stone-100">
               {data.minhasTurmas.map((t) => (
-                <Link key={t.id} href={`/professor/minhas-turmas`} className="flex items-center justify-between py-3 hover:bg-stone-50 -mx-5 px-5 transition-colors">
+                <Link key={t.id} href={`/professor/notas/${t.id}`} className="flex items-center justify-between py-3 hover:bg-stone-50 -mx-5 px-5 transition-colors">
                   <div>
                     <p className="text-sm font-medium text-zab-texto-escuro">
                       {t.turma_codigo} — {t.turma_serie}

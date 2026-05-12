@@ -156,6 +156,9 @@ export interface LancamentoFinanceiro {
   pago_em: string | null
   baixado_por: string | null
   criado_por: string | null
+  numero_recibo: string | null
+  mes_referencia: number | null
+  ano_referencia: number | null
   created_at: string
   updated_at: string
 }
@@ -166,6 +169,8 @@ export interface Frequencia {
   turma_disciplina_id: string
   data_aula: string
   presenca: boolean
+  justificada: boolean
+  motivo_justificativa: string | null
   lancado_por: string
   created_at: string
 }

@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { getAlunosDoResponsavel, getFrequenciasAluno, type AlunoResponsavelView } from '@/lib/actions/responsavel'
 import type { Frequencia } from '@/types/entities'
 import { useSearchParams } from 'next/navigation'
 
-export default function ResponsavelFrequenciaPage() {
+function FrequenciaContent() {
   const searchParams = useSearchParams()
   const alunoIdParam = searchParams.get('aluno')
   const [alunos, setAlunos] = useState<AlunoResponsavelView[]>([])
@@ -142,5 +142,13 @@ export default function ResponsavelFrequenciaPage() {
         </>
       )}
     </div>
+  )
+}
+
+export default function ResponsavelFrequenciaPage() {
+  return (
+    <Suspense fallback={<div className="animate-pulse h-20 rounded-xl bg-stone-200" />}>
+      <FrequenciaContent />
+    </Suspense>
   )
 }

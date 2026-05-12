@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { getAlunosDoResponsavel, getBoletimAluno, type AlunoResponsavelView } from '@/lib/actions/responsavel'
 import { useSearchParams } from 'next/navigation'
 
-export default function ResponsavelBoletimPage() {
+function BoletimContent() {
   const searchParams = useSearchParams()
   const alunoIdParam = searchParams.get('aluno')
   const [alunos, setAlunos] = useState<AlunoResponsavelView[]>([])
@@ -134,5 +134,13 @@ export default function ResponsavelBoletimPage() {
         </>
       )}
     </div>
+  )
+}
+
+export default function ResponsavelBoletimPage() {
+  return (
+    <Suspense fallback={<div className="animate-pulse h-20 rounded-xl bg-stone-200" />}>
+      <BoletimContent />
+    </Suspense>
   )
 }

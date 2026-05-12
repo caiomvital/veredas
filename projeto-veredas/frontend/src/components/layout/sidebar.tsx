@@ -43,6 +43,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Disciplinas', href: '/admin/disciplinas', icon: <BookOpen size={20} />, perfis: ['admin', 'coordenador'] },
   { label: 'Matrículas', href: '/secretaria/matriculas', icon: <ClipboardList size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Professores', href: '/coordenador/professores', icon: <GraduationCap size={20} />, perfis: ['admin', 'coordenador'] },
+  { label: 'Desempenho', href: '/coordenador/desempenho', icon: <BarChart3 size={20} />, perfis: ['coordenador'] },
   { label: 'Períodos Letivos', href: '/admin/periodos', icon: <Calendar size={20} />, perfis: ['admin', 'coordenador'] },
   // Professor
   { label: 'Minhas Turmas', href: '/professor/minhas-turmas', icon: <BookOpen size={20} />, perfis: ['professor'] },
@@ -56,9 +57,11 @@ const NAV_ITEMS: NavItem[] = [
   // Geral
   { label: 'Boletins', href: '/professor/boletins', icon: <FileText size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
   { label: 'Declarações', href: '/secretaria/declaracoes', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Frequência Crítica', href: '/secretaria/frequencia-critica', icon: <ClipboardList size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Histórico Escolar', href: '/secretaria/historico', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Transferência', href: '/secretaria/transferencia', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Financeiro', href: '/admin/financeiro', icon: <DollarSign size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Inadimplência', href: '/admin/inadimplencia', icon: <DollarSign size={20} />, perfis: ['admin'] },
   { label: 'Avisos WhatsApp', href: '/secretaria/avisos-whatsapp', icon: <MessageCircle size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Comunicados', href: '/comunicados', icon: <Bell size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
   { label: 'Calendário', href: '/calendario', icon: <Calendar size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },

@@ -105,7 +105,7 @@ export async function criarLancamentoExtra(formData: FormData): Promise<ActionRe
   }
 }
 
-export async function baixarPagamento(id: string, dataPagamento?: string): Promise<ActionResult<{ multa: number }>> {
+export async function baixarPagamento(id: string, dataPagamento?: string): Promise<ActionResult<{ multa: number; numeroRecibo: string | null }>> {
   try {
     const supabase = await createClient()
 
@@ -125,6 +125,16 @@ export async function baixarPagamento(id: string, dataPagamento?: string): Promi
     const { data: func } = await supabase
       .from('funcionarios').select('id').eq('usuario_id', user?.id).single()
 
+    // Gerar número do recibo
+    const ano = new Date().getFullYear()
+    const { count } = await supabase
+      .from('lancamentos_financeiros')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pago')
+      .gte('pago_em', `${ano}-01-01`)
+    const seq = (count ?? 0) + 1
+    const numeroRecibo = `REC-${ano}-${String(seq).padStart(5, '0')}`
+
     const { error } = await supabase
       .from('lancamentos_financeiros')
       .update({
@@ -133,12 +143,15 @@ export async function baixarPagamento(id: string, dataPagamento?: string): Promi
         multa,
         pago_em: new Date().toISOString(),
         baixado_por: func?.id ?? null,
+        numero_recibo: numeroRecibo,
+        mes_referencia: new Date(paymentDate + 'T00:00:00').getMonth() + 1,
+        ano_referencia: ano,
       })
       .eq('id', id)
 
     if (error) return { data: null, error: error.message }
     revalidatePath('/admin/financeiro')
-    return { data: { multa }, error: null }
+    return { data: { multa, numeroRecibo }, error: null }
   } catch {
     return { data: null, error: 'Erro ao registrar pagamento' }
   }

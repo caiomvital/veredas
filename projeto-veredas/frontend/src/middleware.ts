@@ -18,6 +18,8 @@ const PERMISSOES_ROTA: Record<string, Perfil[]> = {
   '/secretaria': ['secretaria'],
   '/professor': ['professor'],
   '/responsavel': ['responsavel'],
+  '/comunicados': ['admin', 'coordenador', 'secretaria', 'professor', 'responsavel'],
+  '/calendario': ['admin', 'coordenador', 'secretaria', 'professor', 'responsavel'],
 }
 
 const PERMISSOES_ROTA_ESPECIFICAS: Record<string, Perfil[]> = {
