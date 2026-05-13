@@ -39,7 +39,12 @@ export async function getFuncionario(id: string): Promise<ActionResult<Funcionar
 export async function criarFuncionario(formData: FormData): Promise<ActionResult<null>> {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const escolaId = user?.app_metadata?.escola_id as string | undefined
+    if (!escolaId) return { data: null, error: 'Escola não identificada' }
+
     const dados = {
+      escola_id: escolaId,
       nome_completo: formData.get('nome_completo') as string,
       cpf: formData.get('cpf') as string,
       rg: formData.get('rg') as string || null,

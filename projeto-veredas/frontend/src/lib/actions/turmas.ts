@@ -38,7 +38,12 @@ export async function getTurma(id: string): Promise<ActionResult<Turma>> {
 export async function criarTurma(formData: FormData): Promise<ActionResult<null>> {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const escolaId = user?.app_metadata?.escola_id as string | undefined
+    if (!escolaId) return { data: null, error: 'Escola não identificada' }
+
     const dados = {
+      escola_id: escolaId,
       codigo: formData.get('codigo') as string,
       serie: formData.get('serie') as string,
       turno: formData.get('turno') as string,
@@ -106,7 +111,12 @@ export async function listarDisciplinas(): Promise<ActionResult<Disciplina[]>> {
 export async function criarDisciplina(formData: FormData): Promise<ActionResult<null>> {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const escolaId = user?.app_metadata?.escola_id as string | undefined
+    if (!escolaId) return { data: null, error: 'Escola não identificada' }
+
     const dados = {
+      escola_id: escolaId,
       nome: formData.get('nome') as string,
       codigo: formData.get('codigo') as string,
       area_conhecimento: formData.get('area_conhecimento') as string,

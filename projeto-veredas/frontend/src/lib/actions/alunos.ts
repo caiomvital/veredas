@@ -41,8 +41,12 @@ export async function getAluno(id: string): Promise<ActionResult<Aluno>> {
 export async function criarAluno(formData: FormData): Promise<ActionResult<null>> {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const escolaId = user?.app_metadata?.escola_id as string | undefined
+    if (!escolaId) return { data: null, error: 'Escola não identificada' }
 
     const dados = {
+      escola_id: escolaId,
       matricula: formData.get('matricula') as string,
       nome_completo: formData.get('nome_completo') as string,
       data_nascimento: formData.get('data_nascimento') as string,
