@@ -120,6 +120,27 @@ export async function middleware(request: NextRequest) {
   }
 
   const perfil = session.user.app_metadata.perfil as Perfil | undefined
+  const escolaId = session.user.app_metadata.escola_id as string | undefined
+
+  // ─── Onboarding: admin com config pendente ───
+  if (
+    perfil === 'admin' &&
+    escolaId &&
+    !pathname.startsWith('/app/admin/onboarding') &&
+    !pathname.startsWith('/api') &&
+    !pathname.startsWith('/_next')
+  ) {
+    const { data: escola } = await supabase
+      .from('escolas')
+      .select('configuracao_concluida')
+      .eq('id', escolaId)
+      .single()
+
+    if (escola && !escola.configuracao_concluida) {
+      const onboardingUrl = new URL('/app/admin/onboarding', request.url)
+      return NextResponse.redirect(onboardingUrl)
+    }
+  }
 
   // Check specific routes first (exact match or prefix match)
   const rotaEspecifica = Object.entries(PERMISSOES_ROTA_ESPECIFICAS)
