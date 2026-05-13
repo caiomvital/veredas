@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import { Users, BookOpen, GraduationCap, DollarSign, FileText, Bell } from 'lucide-react'
+import { Users, BookOpen, GraduationCap, DollarSign, FileText, Bell, Cake } from 'lucide-react'
 import Link from 'next/link'
 import { getDashboardCounts } from '@/lib/actions/dashboard'
+import { getAniversariantesHoje } from '@/lib/actions/aniversariantes'
 
 interface CardData {
   label: string
@@ -34,11 +35,15 @@ const CARDS: CardData[] = [
 export default function AdminDashboard() {
   const [counts, setCounts] = useState<CountData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [aniversariantesHoje, setAniversariantesHoje] = useState(0)
 
   useEffect(() => {
     getDashboardCounts().then((res) => {
       if (res.data) setCounts(res.data)
       setIsLoading(false)
+    })
+    getAniversariantesHoje().then((res) => {
+      if (res.data) setAniversariantesHoje(res.data.total)
     })
   }, [])
 
@@ -78,6 +83,25 @@ export default function AdminDashboard() {
           )
         })}
       </div>
+
+      {/* Aniversariantes de hoje */}
+      {aniversariantesHoje > 0 && (
+        <Link href="/admin/aniversariantes">
+          <Card className="mt-6 border-pink-200 bg-gradient-to-r from-pink-50 to-rose-50 transition-shadow hover:shadow-md">
+            <CardContent className="flex items-center gap-4 p-5">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-pink-100">
+                <Cake size={24} className="text-pink-600" />
+              </div>
+              <div>
+                <p className="text-lg font-bold text-pink-800">
+                  {aniversariantesHoje} aniversariante{aniversariantesHoje > 1 ? 's' : ''} hoje!
+                </p>
+                <p className="text-sm text-pink-600">Clique para ver quem está fazendo aniversário</p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+      )}
     </div>
   )
 }

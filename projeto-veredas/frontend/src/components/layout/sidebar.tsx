@@ -24,10 +24,12 @@ import {
   MessageCircle,
   Settings,
   Database,
+  Cake,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { getContagemPendentes } from '@/lib/actions/avisos-whatsapp'
 import { contarNaoLidosProfessor, contarNaoLidosResponsavel } from '@/lib/actions/agenda'
+import { getAniversariantesHoje } from '@/lib/actions/aniversariantes'
 
 interface NavItem {
   label: string
@@ -62,6 +64,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Boletins', href: '/professor/boletins', icon: <FileText size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
   { label: 'Declarações', href: '/secretaria/declaracoes', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Ficha do Aluno', href: '/secretaria/ficha-aluno', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Aniversariantes', href: '/admin/aniversariantes', icon: <Cake size={20} />, perfis: ['admin', 'coordenador'] },
   { label: 'Censo Escolar', href: '/admin/censo', icon: <Database size={20} />, perfis: ['admin'] },
   { label: 'Frequência Crítica', href: '/secretaria/frequencia-critica', icon: <ClipboardList size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Histórico Escolar', href: '/secretaria/historico', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
@@ -81,10 +84,14 @@ export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
   const [avisosCount, setAvisosCount] = useState(0)
   const [agendaNaoLidas, setAgendaNaoLidas] = useState(0)
+  const [aniversariantesHoje, setAniversariantesHoje] = useState(0)
 
   useEffect(() => {
     getContagemPendentes().then((res) => {
       if (res.data) setAvisosCount(res.data.total)
+    })
+    getAniversariantesHoje().then((res) => {
+      if (res.data) setAniversariantesHoje(res.data.total)
     })
     if (perfil === 'professor') {
       contarNaoLidosProfessor().then((res) => {
@@ -156,6 +163,11 @@ export function Sidebar() {
                     {(item.href === '/professor/agenda' && agendaNaoLidas > 0) && (
                       <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-yellow-500 px-1.5 text-[10px] font-bold text-white">
                         {agendaNaoLidas > 99 ? '99+' : agendaNaoLidas}
+                      </span>
+                    )}
+                    {(item.href === '/admin/aniversariantes' && aniversariantesHoje > 0) && (
+                      <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-pink-500 px-1.5 text-[10px] font-bold text-white">
+                        {aniversariantesHoje}
                       </span>
                     )}
                   </Link>

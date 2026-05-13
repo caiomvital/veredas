@@ -2,19 +2,24 @@
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import { Users, BookOpen, GraduationCap, Bell, Calendar, FileText } from 'lucide-react'
+import { Users, BookOpen, GraduationCap, Bell, Calendar, FileText, Cake } from 'lucide-react'
 import Link from 'next/link'
 import { getCoordenadorDashboard } from '@/lib/actions/dashboard'
+import { getAniversariantesHoje } from '@/lib/actions/aniversariantes'
 import type { CoordenadorData } from '@/lib/actions/dashboard'
 
 export default function CoordenadorDashboard() {
   const [data, setData] = useState<CoordenadorData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [aniversariantesHoje, setAniversariantesHoje] = useState(0)
 
   useEffect(() => {
     getCoordenadorDashboard().then((res) => {
       if (res.data) setData(res.data)
       setIsLoading(false)
+    })
+    getAniversariantesHoje().then((res) => {
+      if (res.data) setAniversariantesHoje(res.data.total)
     })
   }, [])
 
@@ -104,6 +109,25 @@ export default function CoordenadorDashboard() {
           )}
         </CardContent>
       </Card>
+
+      {/* Aniversariantes de hoje */}
+      {aniversariantesHoje > 0 && (
+        <Link href="/coordenador/aniversariantes">
+          <Card className="mt-6 border-pink-200 bg-gradient-to-r from-pink-50 to-rose-50 transition-shadow hover:shadow-md">
+            <CardContent className="flex items-center gap-4 p-5">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-pink-100">
+                <Cake size={24} className="text-pink-600" />
+              </div>
+              <div>
+                <p className="text-lg font-bold text-pink-800">
+                  {aniversariantesHoje} aniversariante{aniversariantesHoje > 1 ? 's' : ''} hoje!
+                </p>
+                <p className="text-sm text-pink-600">Clique para ver quem está fazendo aniversário</p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+      )}
     </div>
   )
 }
