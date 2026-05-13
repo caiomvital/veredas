@@ -70,10 +70,21 @@ export async function middleware(request: NextRequest) {
     })
   }
 
+  // ─── Domínio raiz: serve landing do Projeto Veredas ───
+  const hostWithoutPort = host.split(':')[0]
+  const isVeredasDomain =
+    hostWithoutPort === 'projetoveredas.com.br' || hostWithoutPort === 'www.projetoveredas.com.br'
+
+  if (isVeredasDomain && pathname === '/') {
+    return NextResponse.rewrite(new URL('/veredas', request.url))
+  }
+
   // ─── Landing pages públicas ───
   if (
     pathname === '/' ||
     pathname === '/app/login' ||
+    pathname === '/veredas' ||
+    pathname.startsWith('/veredas/') ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
     pathname === '/favicon.ico'
