@@ -96,6 +96,15 @@ export default function ComunicadosListPage() {
                 {selectedId === c.id && (
                   <div className="mt-3 pt-3 border-t border-gray-100">
                     <p className="text-sm text-gray-700 whitespace-pre-line">{c.corpo}</p>
+                    {c.requer_confirmacao && (
+                      <Link
+                        href={`/comunicados/${c.id}/confirmacoes`}
+                        className="mt-2 inline-block text-xs text-blue-600 hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Ver confirmações de presença
+                      </Link>
+                    )}
                     {c.lida_em && (
                       <p className="mt-2 text-xs text-gray-400">
                         Lido em {new Date(c.lida_em).toLocaleString('pt-BR')}

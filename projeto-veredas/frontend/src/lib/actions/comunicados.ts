@@ -19,6 +19,7 @@ export async function criarComunicado(formData: FormData): Promise<ActionResult<
     const corpo = formData.get('corpo') as string
     const dataPublicacao = (formData.get('data_publicacao') as string) || new Date().toISOString().split('T')[0]
     const destinatariosRaw = formData.get('destinatarios') as string // JSON array
+    const requerConfirmacao = formData.get('requer_confirmacao') === 'true'
 
     if (!titulo || !corpo) return { data: null, error: 'Título e corpo são obrigatórios.' }
 
@@ -31,6 +32,7 @@ export async function criarComunicado(formData: FormData): Promise<ActionResult<
         corpo,
         data_publicacao: dataPublicacao,
         criado_por: func?.id ?? null,
+        requer_confirmacao: requerConfirmacao,
       })
       .select('id')
       .single()
@@ -106,6 +108,7 @@ export async function listarComunicados(): Promise<ActionResult<Comunicado[]>> {
       destinatarios: c.destinatarios ?? [],
       lida: leituraMap.has(c.id),
       lida_em: leituraMap.get(c.id) ?? null,
+      requer_confirmacao: (c as any).requer_confirmacao ?? false,
     }))
 
     return { data: result, error: null }
@@ -129,5 +132,98 @@ export async function marcarComunicadoLido(comunicadoId: string): Promise<Action
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao marcar como lido' }
+  }
+}
+
+// ---- Confirmação de Presença ----
+
+export async function confirmarPresenca(comunicadoId: string): Promise<ActionResult<null>> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { data: null, error: 'Não autenticado' }
+
+    const { data: resp } = await supabase
+      .from('responsaveis')
+      .select('id')
+      .eq('usuario_id', user.id)
+      .single()
+
+    if (!resp) return { data: null, error: 'Responsável não encontrado' }
+
+    const { error } = await supabase
+      .from('confirmacoes_presenca')
+      .upsert(
+        { comunicado_id: comunicadoId, responsavel_id: resp.id, confirmado: true },
+        { onConflict: 'comunicado_id, responsavel_id' }
+      )
+
+    if (error) return { data: null, error: error.message }
+    revalidatePath('/responsavel/comunicados')
+    return { data: null, error: null }
+  } catch {
+    return { data: null, error: 'Erro ao confirmar presença' }
+  }
+}
+
+export async function verificarConfirmacao(comunicadoId: string): Promise<ActionResult<{ confirmado: boolean }>> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { data: null, error: 'Não autenticado' }
+
+    const { data: resp } = await supabase
+      .from('responsaveis')
+      .select('id')
+      .eq('usuario_id', user.id)
+      .single()
+
+    if (!resp) return { data: { confirmado: false }, error: null }
+
+    const { data } = await supabase
+      .from('confirmacoes_presenca')
+      .select('confirmado')
+      .eq('comunicado_id', comunicadoId)
+      .eq('responsavel_id', resp.id)
+      .maybeSingle()
+
+    return { data: { confirmado: data?.confirmado ?? false }, error: null }
+  } catch {
+    return { data: null, error: 'Erro ao verificar confirmação' }
+  }
+}
+
+export async function getConfirmadosComunicado(comunicadoId: string): Promise<ActionResult<{
+  confirmados: number
+  total: number
+  lista: { responsavel_nome: string; confirmado: boolean }[]
+}>> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const escolaId = user?.app_metadata?.escola_id as string | undefined
+    if (!escolaId) return { data: null, error: 'Escola não identificada' }
+
+    // Buscar todas as confirmações
+    const { data: confirmacoes } = await supabase
+      .from('confirmacoes_presenca')
+      .select('confirmado, responsavel_id, responsaveis!inner(nome_completo)')
+      .eq('comunicado_id', comunicadoId)
+
+    const lista = (confirmacoes ?? []).map((c) => ({
+      responsavel_nome: (c.responsaveis as unknown as { nome_completo: string }).nome_completo,
+      confirmado: c.confirmado,
+    }))
+
+    return {
+      data: {
+        confirmados: lista.filter((l) => l.confirmado).length,
+        total: lista.length,
+        lista,
+      },
+      error: null,
+    }
+  } catch {
+    return { data: null, error: 'Erro ao carregar confirmações' }
   }
 }

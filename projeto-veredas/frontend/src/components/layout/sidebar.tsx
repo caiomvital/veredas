@@ -26,11 +26,13 @@ import {
   Database,
   Cake,
   RefreshCw,
+  MessageSquare,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { getContagemPendentes } from '@/lib/actions/avisos-whatsapp'
 import { contarNaoLidosProfessor, contarNaoLidosResponsavel } from '@/lib/actions/agenda'
 import { getAniversariantesHoje } from '@/lib/actions/aniversariantes'
+import { contarSolicitacoesAbertas } from '@/lib/actions/solicitacoes'
 
 interface NavItem {
   label: string
@@ -50,6 +52,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Matrículas', href: '/secretaria/matriculas', icon: <ClipboardList size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Professores', href: '/coordenador/professores', icon: <GraduationCap size={20} />, perfis: ['admin', 'coordenador'] },
   { label: 'Desempenho', href: '/coordenador/desempenho', icon: <BarChart3 size={20} />, perfis: ['coordenador'] },
+  { label: 'Conselho de Classe', href: '/coordenador/conselho', icon: <ClipboardList size={20} />, perfis: ['coordenador'] },
   { label: 'Períodos Letivos', href: '/admin/periodos', icon: <Calendar size={20} />, perfis: ['admin', 'coordenador'] },
   // Professor
   { label: 'Minhas Turmas', href: '/professor/minhas-turmas', icon: <BookOpen size={20} />, perfis: ['professor'] },
@@ -71,10 +74,13 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Censo Escolar', href: '/admin/censo', icon: <Database size={20} />, perfis: ['admin'] },
   { label: 'Frequência Crítica', href: '/secretaria/frequencia-critica', icon: <ClipboardList size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Justificativas', href: '/secretaria/justificativas', icon: <ClipboardList size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Lista de Espera', href: '/secretaria/lista-espera', icon: <Users size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Solicitações', href: '/secretaria/solicitacoes', icon: <MessageSquare size={20} />, perfis: ['admin', 'secretaria', 'coordenador'] },
   { label: 'Histórico Escolar', href: '/secretaria/historico', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Transferência', href: '/secretaria/transferencia', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Rematrícula', href: '/secretaria/rematricula', icon: <RefreshCw size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Financeiro', href: '/admin/financeiro', icon: <DollarSign size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Rel. Financeiro', href: '/admin/financeiro/relatorio', icon: <BarChart3 size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Inadimplência', href: '/admin/inadimplencia', icon: <DollarSign size={20} />, perfis: ['admin'] },
   { label: 'Avisos WhatsApp', href: '/secretaria/avisos-whatsapp', icon: <MessageCircle size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Comunicados', href: '/comunicados', icon: <Bell size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
@@ -95,6 +101,7 @@ export function Sidebar() {
   const [avisosCount, setAvisosCount] = useState(0)
   const [agendaNaoLidas, setAgendaNaoLidas] = useState(0)
   const [aniversariantesHoje, setAniversariantesHoje] = useState(0)
+  const [solicitacoesCount, setSolicitacoesCount] = useState(0)
 
   useEffect(() => {
     getContagemPendentes().then((res) => {
@@ -102,6 +109,9 @@ export function Sidebar() {
     })
     getAniversariantesHoje().then((res) => {
       if (res.data) setAniversariantesHoje(res.data.total)
+    })
+    contarSolicitacoesAbertas().then((res) => {
+      if (res.data) setSolicitacoesCount(res.data.total)
     })
     if (perfil === 'professor') {
       contarNaoLidosProfessor().then((res) => {
@@ -178,6 +188,11 @@ export function Sidebar() {
                     {(item.href === '/admin/aniversariantes' && aniversariantesHoje > 0) && (
                       <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-pink-500 px-1.5 text-[10px] font-bold text-white">
                         {aniversariantesHoje}
+                      </span>
+                    )}
+                    {(item.href === '/secretaria/solicitacoes' && solicitacoesCount > 0) && (
+                      <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-blue-500 px-1.5 text-[10px] font-bold text-white">
+                        {solicitacoesCount > 99 ? '99+' : solicitacoesCount}
                       </span>
                     )}
                   </Link>

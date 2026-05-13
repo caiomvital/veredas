@@ -164,6 +164,7 @@ export async function getComunicadosResponsavel(): Promise<ActionResult<Comunica
       destinatarios: c.destinatarios ?? [],
       lida: leituraMap.has(c.id),
       lida_em: leituraMap.get(c.id) ?? null,
+      requer_confirmacao: (c as any).requer_confirmacao ?? false,
     }))
 
     return { data: result, error: null }

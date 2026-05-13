@@ -15,8 +15,10 @@ const NAV_ITEMS = [
   { label: 'Financeiro', href: '/responsavel/financeiro', icon: '💰' },
   { label: 'Boletim', href: '/responsavel/boletim', icon: '📄' },
   { label: 'Comunicados', href: '/responsavel/comunicados', icon: '🔔' },
+  { label: 'Solicitações', href: '/responsavel/solicitacoes', icon: '📋' },
   { label: 'Agenda', href: '/responsavel/agenda', icon: '💬' },
   { label: 'Calendário', href: '/responsavel/calendario', icon: '📅' },
+  { label: 'Meus Dados', href: '/responsavel/meus-dados', icon: '👤' },
 ]
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {

@@ -32,6 +32,7 @@ export default function NovoComunicadoPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notificarWhatsApp, setNotificarWhatsApp] = useState(false)
+  const [requerConfirmacao, setRequerConfirmacao] = useState(false)
 
   useEffect(() => {
     listarTurmas({}).then((res) => {
@@ -66,6 +67,7 @@ export default function NovoComunicadoPage() {
     fd.set('corpo', corpo)
     fd.set('data_publicacao', dataPublicacao)
     fd.set('destinatarios', JSON.stringify(destinatarios))
+    fd.set('requer_confirmacao', requerConfirmacao ? 'true' : 'false')
     const res = await criarComunicado(fd)
     if (res.error) { setError(res.error); toast.error("Erro: " + res.error); setIsSaving(false); return }
 
@@ -153,6 +155,16 @@ export default function NovoComunicadoPage() {
             <div>
               <span className="text-sm font-medium text-stone-700">Notificar responsáveis por WhatsApp</span>
               <p className="text-xs text-gray-400">Gera avisos pendentes na seção de WhatsApp para os responsáveis dos alunos.</p>
+            </div>
+          </label>
+
+          {/* Requer confirmação de presença */}
+          <label className="flex items-center gap-2 rounded-lg border border-stone-200 p-3 cursor-pointer hover:bg-stone-50">
+            <input type="checkbox" checked={requerConfirmacao} onChange={(e) => setRequerConfirmacao(e.target.checked)}
+              className="h-4 w-4 rounded border-stone-300 text-zab-dourado focus:ring-zab-dourado" />
+            <div>
+              <span className="text-sm font-medium text-stone-700">Requer confirmação de presença</span>
+              <p className="text-xs text-gray-400">O responsável precisará confirmar presença no comunicado.</p>
             </div>
           </label>
 

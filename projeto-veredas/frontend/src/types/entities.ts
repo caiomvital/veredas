@@ -195,6 +195,7 @@ export interface Comunicado {
   destinatarios: ComunicadoDestinatario[]
   lida?: boolean
   lida_em?: string | null
+  requer_confirmacao?: boolean
 }
 
 export interface ComunicadoDestinatario {
