@@ -9,6 +9,10 @@ export interface AlunoComTurma extends Aluno {
   matriculas: {
     turmas: { codigo: string; serie: string } | null
   }[]
+  aluno_responsavel: {
+    grau_parentesco: string
+    responsaveis: { nome_completo: string } | null
+  }[]
 }
 
 export async function listarAlunos(params?: { status?: string; busca?: string }): Promise<ActionResult<AlunoComTurma[]>> {
@@ -16,7 +20,11 @@ export async function listarAlunos(params?: { status?: string; busca?: string })
     const supabase = await createClient()
     let query = supabase
       .from('alunos')
-      .select('*, matriculas!left(turmas!left(codigo, serie))')
+      .select(`
+        *,
+        matriculas!left(turmas!left(codigo, serie)),
+        aluno_responsavel!left(grau_parentesco, responsaveis!left(nome_completo))
+      `)
       .order('nome_completo')
 
     if (params?.status && params.status !== 'todos') {

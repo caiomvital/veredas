@@ -17,6 +17,12 @@ function getTurmaLabel(row: AlunoComTurma): string {
   return `${ativa.turmas.serie} - ${ativa.turmas.codigo}`
 }
 
+function getResponsavelLabel(row: AlunoComTurma): string {
+  const vinculo = row.aluno_responsavel?.[0]
+  if (!vinculo?.responsaveis?.nome_completo) return '—'
+  return `${vinculo.responsaveis.nome_completo} — ${vinculo.grau_parentesco}`
+}
+
 const columns: Column<AlunoComTurma>[] = [
   { key: 'matricula', label: 'Matrícula', sortable: true },
   { key: 'nome_completo', label: 'Nome', sortable: true },
@@ -28,6 +34,11 @@ const columns: Column<AlunoComTurma>[] = [
     key: 'matriculas', label: 'Turma',
     sortable: false,
     render: (row) => getTurmaLabel(row),
+  },
+  {
+    key: 'aluno_responsavel', label: 'Responsável',
+    sortable: false,
+    render: (row) => getResponsavelLabel(row),
   },
   {
     key: 'status',
