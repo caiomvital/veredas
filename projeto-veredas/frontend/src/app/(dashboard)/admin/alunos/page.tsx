@@ -2,25 +2,33 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { listarAlunos, excluirAluno } from '@/lib/actions/alunos'
+import { listarAlunos, excluirAluno, type AlunoComTurma } from '@/lib/actions/alunos'
 import { DataTable, type Column } from '@/components/ui/data-table'
 import { Button } from '@/components/ui/button'
 import { Badge, statusBadge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Select } from '@/components/ui/select'
 import { Plus, Eye, Trash2 } from 'lucide-react'
-import type { Aluno } from '@/types/entities'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
-const columns: Column<Aluno>[] = [
+function getTurmaLabel(row: AlunoComTurma): string {
+  const ativa = row.matriculas?.find((m) => (m as unknown as { status?: string }).status !== 'cancelada')
+  if (!ativa?.turmas) return '—'
+  return `${ativa.turmas.serie} - ${ativa.turmas.codigo}`
+}
+
+const columns: Column<AlunoComTurma>[] = [
   { key: 'matricula', label: 'Matrícula', sortable: true },
   { key: 'nome_completo', label: 'Nome', sortable: true },
   {
     key: 'data_nascimento', label: 'Nascimento',
     render: (row) => row.data_nascimento ?? '—',
   },
-  { key: 'cpf', label: 'CPF' },
-  { key: 'nome_mae', label: 'Mãe' },
+  {
+    key: 'matriculas', label: 'Turma',
+    sortable: false,
+    render: (row) => getTurmaLabel(row),
+  },
   {
     key: 'status',
     label: 'Status',
@@ -32,7 +40,7 @@ const columns: Column<Aluno>[] = [
 ]
 
 export default function AlunosPage() {
-  const [data, setData] = useState<Aluno[]>([])
+  const [data, setData] = useState<AlunoComTurma[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState('todos')

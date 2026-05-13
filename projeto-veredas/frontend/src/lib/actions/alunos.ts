@@ -5,10 +5,19 @@ import { revalidatePath } from 'next/cache'
 import type { ActionResult } from './types'
 import type { Aluno } from '@/types/entities'
 
-export async function listarAlunos(params?: { status?: string; busca?: string }): Promise<ActionResult<Aluno[]>> {
+export interface AlunoComTurma extends Aluno {
+  matriculas: {
+    turmas: { codigo: string; serie: string } | null
+  }[]
+}
+
+export async function listarAlunos(params?: { status?: string; busca?: string }): Promise<ActionResult<AlunoComTurma[]>> {
   try {
     const supabase = await createClient()
-    let query = supabase.from('alunos').select('*').order('nome_completo')
+    let query = supabase
+      .from('alunos')
+      .select('*, matriculas!left(turmas!left(codigo, serie))')
+      .order('nome_completo')
 
     if (params?.status && params.status !== 'todos') {
       query = query.eq('status', params.status)
@@ -21,7 +30,7 @@ export async function listarAlunos(params?: { status?: string; busca?: string })
 
     const { data, error } = await query
     if (error) return { data: null, error: error.message }
-    return { data: data as unknown as Aluno[], error: null }
+    return { data: data as unknown as AlunoComTurma[], error: null }
   } catch (e) {
     return { data: null, error: 'Erro ao carregar alunos' }
   }
