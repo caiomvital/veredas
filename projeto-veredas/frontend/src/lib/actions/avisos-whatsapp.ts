@@ -19,6 +19,8 @@ export async function gerarAvisosFaltas(): Promise<ActionResult<number>> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { data: null, error: 'Não autenticado' }
+    const escolaId = user?.app_metadata?.escola_id as string | undefined
+    if (!escolaId) return { data: null, error: 'Escola não identificada' }
 
     // Calcular semana atual (segunda a sexta)
     const hoje = new Date()
@@ -90,6 +92,7 @@ export async function gerarAvisosFaltas(): Promise<ActionResult<number>> {
           `Olá, ${resp.nome_completo}! Informamos que ${info.aluno_nome} registrou ${info.count} falta(s) nesta semana no ${ESCOLA_NOME}. Em caso de dúvidas, entre em contato conosco. 😊`
 
         await supabase.from('avisos_whatsapp').insert({
+          escola_id: escolaId,
           tipo: 'falta',
           aluno_id: info.aluno_id,
           responsavel_id: resp.id,
@@ -116,6 +119,10 @@ export async function gerarAvisosFaltas(): Promise<ActionResult<number>> {
 export async function gerarAvisosFinanceiro(): Promise<ActionResult<number>> {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { data: null, error: 'Não autenticado' }
+    const escolaId = user?.app_metadata?.escola_id as string | undefined
+    if (!escolaId) return { data: null, error: 'Escola não identificada' }
 
     const hoje = new Date()
     hoje.setHours(0, 0, 0, 0)
@@ -169,6 +176,7 @@ export async function gerarAvisosFinanceiro(): Promise<ActionResult<number>> {
           `Olá, ${resp.nome_completo}! Passando para lembrar que a mensalidade de ${mesNome} do(a) ${aluno.nome_completo} vence em ${diaVenc}. Qualquer dúvida, estamos à disposição. 💚`
 
         await supabase.from('avisos_whatsapp').insert({
+          escola_id: escolaId,
           tipo: 'financeiro',
           aluno_id: aluno.id,
           responsavel_id: resp.id,
@@ -199,6 +207,10 @@ export async function gerarAvisosComunicado(
 ): Promise<ActionResult<number>> {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { data: null, error: 'Não autenticado' }
+    const escolaId = user?.app_metadata?.escola_id as string | undefined
+    if (!escolaId) return { data: null, error: 'Escola não identificada' }
 
     // Buscar todos os alunos com matrícula ativa
     let query = supabase
@@ -238,6 +250,7 @@ export async function gerarAvisosComunicado(
           `Olá, ${resp.nome_completo}! O ${ESCOLA_NOME} publicou um novo comunicado: '${tituloComunicado}'. Acesse o portal para ler na íntegra.`
 
         await supabase.from('avisos_whatsapp').insert({
+          escola_id: escolaId,
           tipo: 'comunicado',
           aluno_id: alunoId,
           responsavel_id: resp.id,

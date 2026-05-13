@@ -32,7 +32,12 @@ export async function getPeriodo(id: string): Promise<ActionResult<PeriodoLetivo
 export async function criarPeriodo(formData: FormData): Promise<ActionResult<null>> {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const escolaId = user?.app_metadata?.escola_id as string | undefined
+    if (!escolaId) return { data: null, error: 'Escola não identificada' }
+
     const dados = {
+      escola_id: escolaId,
       nome: formData.get('nome') as string,
       ordem: parseInt(formData.get('ordem') as string),
       data_inicio: formData.get('data_inicio') as string,

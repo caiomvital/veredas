@@ -9,6 +9,9 @@ export async function criarComunicado(formData: FormData): Promise<ActionResult<
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
+    const escolaId = user?.app_metadata?.escola_id as string | undefined
+    if (!escolaId) return { data: null, error: 'Escola não identificada' }
+
     const { data: func } = await supabase
       .from('funcionarios').select('id').eq('usuario_id', user?.id).single()
 
@@ -23,6 +26,7 @@ export async function criarComunicado(formData: FormData): Promise<ActionResult<
     const { data: comunicado, error: err } = await supabase
       .from('comunicados')
       .insert({
+        escola_id: escolaId,
         titulo,
         corpo,
         data_publicacao: dataPublicacao,

@@ -9,10 +9,14 @@ export async function criarEvento(formData: FormData): Promise<ActionResult<null
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
+    const escolaId = user?.app_metadata?.escola_id as string | undefined
+    if (!escolaId) return { data: null, error: 'Escola não identificada' }
+
     const { data: func } = await supabase
       .from('funcionarios').select('id').eq('usuario_id', user?.id).single()
 
     const dados = {
+      escola_id: escolaId,
       nome: formData.get('nome') as string,
       descricao: (formData.get('descricao') as string) || null,
       data_inicio: formData.get('data_inicio') as string,
