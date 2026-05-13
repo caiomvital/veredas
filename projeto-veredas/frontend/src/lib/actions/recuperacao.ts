@@ -132,7 +132,7 @@ export async function salvarNotasRecuperacao(
     })
 
     if (error) return { data: null, error: error.message }
-    revalidatePath('/professor/recuperacao')
+    revalidatePath('/app/professor/recuperacao')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao salvar notas de recuperação' }

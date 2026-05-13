@@ -189,7 +189,7 @@ export async function salvarEscolaConfig(formData: FormData): Promise<ActionResu
     if (error) return { data: null, error: error.message }
 
     invalidateSchoolCache()
-    revalidatePath('/admin/configuracoes')
+    revalidatePath('/app/admin/configuracoes')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao salvar configurações' }

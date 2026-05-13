@@ -99,7 +99,7 @@ export async function criarAluno(formData: FormData): Promise<ActionResult<null>
     const { error } = await supabase.from('alunos').insert(dados)
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/admin/alunos')
+    revalidatePath('/app/admin/alunos')
     return { data: null, error: null }
   } catch (e) {
     return { data: null, error: 'Erro ao criar aluno' }
@@ -146,7 +146,7 @@ export async function atualizarAluno(id: string, formData: FormData): Promise<Ac
     const { error } = await supabase.from('alunos').update(dados).eq('id', id)
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/admin/alunos')
+    revalidatePath('/app/admin/alunos')
     revalidatePath(`/admin/alunos/${id}`)
     return { data: null, error: null }
   } catch (e) {
@@ -160,7 +160,7 @@ export async function excluirAluno(id: string): Promise<ActionResult<null>> {
     const { error } = await supabase.from('alunos').update({ status: 'inativo' }).eq('id', id)
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/admin/alunos')
+    revalidatePath('/app/admin/alunos')
     return { data: null, error: null }
   } catch (e) {
     return { data: null, error: 'Erro ao excluir aluno' }

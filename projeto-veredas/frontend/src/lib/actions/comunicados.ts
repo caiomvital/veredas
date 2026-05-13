@@ -53,7 +53,7 @@ export async function criarComunicado(formData: FormData): Promise<ActionResult<
       if (err2) return { data: null, error: err2.message }
     }
 
-    revalidatePath('/comunicados')
+    revalidatePath('/app/comunicados')
     return { data: { id: comunicado.id }, error: null }
   } catch (e) {
     return { data: null, error: 'Erro ao criar comunicado' }
@@ -159,7 +159,7 @@ export async function confirmarPresenca(comunicadoId: string): Promise<ActionRes
       )
 
     if (error) return { data: null, error: error.message }
-    revalidatePath('/responsavel/comunicados')
+    revalidatePath('/app/responsavel/comunicados')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao confirmar presença' }

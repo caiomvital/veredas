@@ -59,7 +59,7 @@ export async function criarFuncionario(formData: FormData): Promise<ActionResult
     const { error } = await supabase.from('funcionarios').insert(dados)
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/admin/funcionarios')
+    revalidatePath('/app/admin/funcionarios')
     return { data: null, error: null }
   } catch (e) {
     return { data: null, error: 'Erro ao criar funcionário' }
@@ -84,7 +84,7 @@ export async function atualizarFuncionario(id: string, formData: FormData): Prom
     const { error } = await supabase.from('funcionarios').update(dados).eq('id', id)
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/admin/funcionarios')
+    revalidatePath('/app/admin/funcionarios')
     return { data: null, error: null }
   } catch (e) {
     return { data: null, error: 'Erro ao atualizar funcionário' }
@@ -97,7 +97,7 @@ export async function excluirFuncionario(id: string): Promise<ActionResult<null>
     const { error } = await supabase.from('funcionarios').update({ ativo: false }).eq('id', id)
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/admin/funcionarios')
+    revalidatePath('/app/admin/funcionarios')
     return { data: null, error: null }
   } catch (e) {
     return { data: null, error: 'Erro ao excluir funcionário' }

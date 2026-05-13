@@ -46,7 +46,7 @@ export async function criarPeriodo(formData: FormData): Promise<ActionResult<nul
     }
     const { error } = await supabase.from('periodos_letivos').insert(dados)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/admin/periodos')
+    revalidatePath('/app/admin/periodos')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao criar período' }
@@ -64,7 +64,7 @@ export async function atualizarPeriodo(id: string, formData: FormData): Promise<
     }
     const { error } = await supabase.from('periodos_letivos').update(dados).eq('id', id)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/admin/periodos')
+    revalidatePath('/app/admin/periodos')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao atualizar período' }
@@ -76,7 +76,7 @@ export async function excluirPeriodo(id: string): Promise<ActionResult<null>> {
     const supabase = await createClient()
     const { error } = await supabase.from('periodos_letivos').delete().eq('id', id)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/admin/periodos')
+    revalidatePath('/app/admin/periodos')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao excluir período' }

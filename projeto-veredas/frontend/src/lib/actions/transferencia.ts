@@ -67,9 +67,9 @@ export async function realizarTransferencia(alunoId: string): Promise<ActionResu
     }
 
     // 6. Revalidate paths
-    revalidatePath('/admin/alunos')
-    revalidatePath('/secretaria/matriculas')
-    revalidatePath('/secretaria/transferencia')
+    revalidatePath('/app/admin/alunos')
+    revalidatePath('/app/secretaria/matriculas')
+    revalidatePath('/app/secretaria/transferencia')
 
     return {
       data: {

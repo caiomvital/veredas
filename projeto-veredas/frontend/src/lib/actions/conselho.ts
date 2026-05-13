@@ -165,7 +165,7 @@ export async function salvarDecisaoConselho(
       }, { onConflict: 'turma_id, periodo_id, aluno_id' })
 
     if (error) return { data: null, error: error.message }
-    revalidatePath('/coordenador/conselho')
+    revalidatePath('/app/coordenador/conselho')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao salvar decisão' }
@@ -207,7 +207,7 @@ export async function salvarDecisoesEmLote(
       if (!error) salvos++
     }
 
-    revalidatePath('/coordenador/conselho')
+    revalidatePath('/app/coordenador/conselho')
     return { data: { salvos }, error: null }
   } catch {
     return { data: null, error: 'Erro ao salvar decisões' }

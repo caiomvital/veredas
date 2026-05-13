@@ -42,55 +42,55 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', href: '/admin', icon: <LayoutDashboard size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
+  { label: 'Dashboard', href: '/app/admin', icon: <LayoutDashboard size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
   // Admin / Coordenação
-  { label: 'Alunos', href: '/admin/alunos', icon: <Users size={20} />, perfis: ['admin', 'coordenador', 'secretaria'] },
-  { label: 'Funcionários', href: '/admin/funcionarios', icon: <Users size={20} />, perfis: ['admin', 'secretaria', 'coordenador'] },
-  { label: 'Responsáveis', href: '/admin/responsaveis', icon: <Users size={20} />, perfis: ['admin', 'secretaria'] },
-  { label: 'Turmas', href: '/admin/turmas', icon: <BookOpen size={20} />, perfis: ['admin', 'coordenador'] },
-  { label: 'Disciplinas', href: '/admin/disciplinas', icon: <BookOpen size={20} />, perfis: ['admin', 'coordenador'] },
-  { label: 'Matrículas', href: '/secretaria/matriculas', icon: <ClipboardList size={20} />, perfis: ['admin', 'secretaria'] },
-  { label: 'Professores', href: '/coordenador/professores', icon: <GraduationCap size={20} />, perfis: ['admin', 'coordenador'] },
-  { label: 'Desempenho', href: '/coordenador/desempenho', icon: <BarChart3 size={20} />, perfis: ['coordenador'] },
-  { label: 'Conselho de Classe', href: '/coordenador/conselho', icon: <ClipboardList size={20} />, perfis: ['coordenador'] },
-  { label: 'Períodos Letivos', href: '/admin/periodos', icon: <Calendar size={20} />, perfis: ['admin', 'coordenador'] },
+  { label: 'Alunos', href: '/app/admin/alunos', icon: <Users size={20} />, perfis: ['admin', 'coordenador', 'secretaria'] },
+  { label: 'Funcionários', href: '/app/admin/funcionarios', icon: <Users size={20} />, perfis: ['admin', 'secretaria', 'coordenador'] },
+  { label: 'Responsáveis', href: '/app/admin/responsaveis', icon: <Users size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Turmas', href: '/app/admin/turmas', icon: <BookOpen size={20} />, perfis: ['admin', 'coordenador'] },
+  { label: 'Disciplinas', href: '/app/admin/disciplinas', icon: <BookOpen size={20} />, perfis: ['admin', 'coordenador'] },
+  { label: 'Matrículas', href: '/app/secretaria/matriculas', icon: <ClipboardList size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Professores', href: '/app/coordenador/professores', icon: <GraduationCap size={20} />, perfis: ['admin', 'coordenador'] },
+  { label: 'Desempenho', href: '/app/coordenador/desempenho', icon: <BarChart3 size={20} />, perfis: ['coordenador'] },
+  { label: 'Conselho de Classe', href: '/app/coordenador/conselho', icon: <ClipboardList size={20} />, perfis: ['coordenador'] },
+  { label: 'Períodos Letivos', href: '/app/admin/periodos', icon: <Calendar size={20} />, perfis: ['admin', 'coordenador'] },
   // Professor
-  { label: 'Minhas Turmas', href: '/professor/minhas-turmas', icon: <BookOpen size={20} />, perfis: ['professor'] },
-  { label: 'Notas', href: '/professor/notas', icon: <BarChart3 size={20} />, perfis: ['professor'] },
-  { label: 'Chamada', href: '/professor/chamada', icon: <ClipboardList size={20} />, perfis: ['professor'] },
-  { label: 'Registro de Aulas', href: '/professor/registro-aulas', icon: <FileText size={20} />, perfis: ['professor'] },
-  { label: 'Atividades', href: '/professor/atividades', icon: <ClipboardList size={20} />, perfis: ['professor'] },
-  { label: 'Planejamento', href: '/professor/planejamento', icon: <FileText size={20} />, perfis: ['professor'] },
-  { label: 'Diários de Classe', href: '/professor/diarios', icon: <FileText size={20} />, perfis: ['professor'] },
-  { label: 'Agenda', href: '/professor/agenda', icon: <MessageCircle size={20} />, perfis: ['professor'] },
-  { label: 'Diários de Classe', href: '/coordenador/diarios', icon: <FileText size={20} />, perfis: ['coordenador'] },
-  { label: 'Agenda', href: '/coordenador/agenda', icon: <MessageCircle size={20} />, perfis: ['coordenador'] },
+  { label: 'Minhas Turmas', href: '/app/professor/minhas-turmas', icon: <BookOpen size={20} />, perfis: ['professor'] },
+  { label: 'Notas', href: '/app/professor/notas', icon: <BarChart3 size={20} />, perfis: ['professor'] },
+  { label: 'Chamada', href: '/app/professor/chamada', icon: <ClipboardList size={20} />, perfis: ['professor'] },
+  { label: 'Registro de Aulas', href: '/app/professor/registro-aulas', icon: <FileText size={20} />, perfis: ['professor'] },
+  { label: 'Atividades', href: '/app/professor/atividades', icon: <ClipboardList size={20} />, perfis: ['professor'] },
+  { label: 'Planejamento', href: '/app/professor/planejamento', icon: <FileText size={20} />, perfis: ['professor'] },
+  { label: 'Diários de Classe', href: '/app/professor/diarios', icon: <FileText size={20} />, perfis: ['professor'] },
+  { label: 'Agenda', href: '/app/professor/agenda', icon: <MessageCircle size={20} />, perfis: ['professor'] },
+  { label: 'Diários de Classe', href: '/app/coordenador/diarios', icon: <FileText size={20} />, perfis: ['coordenador'] },
+  { label: 'Agenda', href: '/app/coordenador/agenda', icon: <MessageCircle size={20} />, perfis: ['coordenador'] },
   // Geral
-  { label: 'Boletins', href: '/professor/boletins', icon: <FileText size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
-  { label: 'Declarações', href: '/secretaria/declaracoes', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
-  { label: 'Ficha do Aluno', href: '/secretaria/ficha-aluno', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
-  { label: 'Contratos', href: '/secretaria/contratos', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
-  { label: 'Aniversariantes', href: '/admin/aniversariantes', icon: <Cake size={20} />, perfis: ['admin', 'coordenador'] },
-  { label: 'Censo Escolar', href: '/admin/censo', icon: <Database size={20} />, perfis: ['admin'] },
-  { label: 'Frequência Crítica', href: '/secretaria/frequencia-critica', icon: <ClipboardList size={20} />, perfis: ['admin', 'secretaria'] },
-  { label: 'Justificativas', href: '/secretaria/justificativas', icon: <ClipboardList size={20} />, perfis: ['admin', 'secretaria'] },
-  { label: 'Lista de Espera', href: '/secretaria/lista-espera', icon: <Users size={20} />, perfis: ['admin', 'secretaria'] },
-  { label: 'Solicitações', href: '/secretaria/solicitacoes', icon: <MessageSquare size={20} />, perfis: ['admin', 'secretaria', 'coordenador'] },
-  { label: 'Histórico Escolar', href: '/secretaria/historico', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
-  { label: 'Transferência', href: '/secretaria/transferencia', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
-  { label: 'Rematrícula', href: '/secretaria/rematricula', icon: <RefreshCw size={20} />, perfis: ['admin', 'secretaria'] },
-  { label: 'Financeiro', href: '/admin/financeiro', icon: <DollarSign size={20} />, perfis: ['admin', 'secretaria'] },
-  { label: 'Rel. Financeiro', href: '/admin/financeiro/relatorio', icon: <BarChart3 size={20} />, perfis: ['admin', 'secretaria'] },
-  { label: 'Inadimplência', href: '/admin/inadimplencia', icon: <DollarSign size={20} />, perfis: ['admin'] },
-  { label: 'Avisos WhatsApp', href: '/secretaria/avisos-whatsapp', icon: <MessageCircle size={20} />, perfis: ['admin', 'secretaria'] },
-  { label: 'Comunicados', href: '/comunicados', icon: <Bell size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
-  { label: 'Calendário', href: '/calendario', icon: <Calendar size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
-  { label: 'Relatórios', href: '/admin/relatorios', icon: <BarChart3 size={20} />, perfis: ['admin'] },
-  { label: 'Exportação', href: '/admin/exportacao', icon: <Database size={20} />, perfis: ['admin'] },
-  { label: 'Relatórios', href: '/coordenador/relatorios', icon: <BarChart3 size={20} />, perfis: ['coordenador'] },
-  { label: 'Relatórios', href: '/professor/relatorios', icon: <BarChart3 size={20} />, perfis: ['professor'] },
-  { label: 'Recuperação', href: '/professor/recuperacao', icon: <BarChart3 size={20} />, perfis: ['professor'] },
-  { label: 'Configurações', href: '/admin/configuracoes', icon: <Settings size={20} />, perfis: ['admin'] },
+  { label: 'Boletins', href: '/app/professor/boletins', icon: <FileText size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
+  { label: 'Declarações', href: '/app/secretaria/declaracoes', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Ficha do Aluno', href: '/app/secretaria/ficha-aluno', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Contratos', href: '/app/secretaria/contratos', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Aniversariantes', href: '/app/admin/aniversariantes', icon: <Cake size={20} />, perfis: ['admin', 'coordenador'] },
+  { label: 'Censo Escolar', href: '/app/admin/censo', icon: <Database size={20} />, perfis: ['admin'] },
+  { label: 'Frequência Crítica', href: '/app/secretaria/frequencia-critica', icon: <ClipboardList size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Justificativas', href: '/app/secretaria/justificativas', icon: <ClipboardList size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Lista de Espera', href: '/app/secretaria/lista-espera', icon: <Users size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Solicitações', href: '/app/secretaria/solicitacoes', icon: <MessageSquare size={20} />, perfis: ['admin', 'secretaria', 'coordenador'] },
+  { label: 'Histórico Escolar', href: '/app/secretaria/historico', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Transferência', href: '/app/secretaria/transferencia', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Rematrícula', href: '/app/secretaria/rematricula', icon: <RefreshCw size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Financeiro', href: '/app/admin/financeiro', icon: <DollarSign size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Rel. Financeiro', href: '/app/admin/financeiro/relatorio', icon: <BarChart3 size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Inadimplência', href: '/app/admin/inadimplencia', icon: <DollarSign size={20} />, perfis: ['admin'] },
+  { label: 'Avisos WhatsApp', href: '/app/secretaria/avisos-whatsapp', icon: <MessageCircle size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Comunicados', href: '/app/comunicados', icon: <Bell size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
+  { label: 'Calendário', href: '/app/calendario', icon: <Calendar size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
+  { label: 'Relatórios', href: '/app/admin/relatorios', icon: <BarChart3 size={20} />, perfis: ['admin'] },
+  { label: 'Exportação', href: '/app/admin/exportacao', icon: <Database size={20} />, perfis: ['admin'] },
+  { label: 'Relatórios', href: '/app/coordenador/relatorios', icon: <BarChart3 size={20} />, perfis: ['coordenador'] },
+  { label: 'Relatórios', href: '/app/professor/relatorios', icon: <BarChart3 size={20} />, perfis: ['professor'] },
+  { label: 'Recuperação', href: '/app/professor/recuperacao', icon: <BarChart3 size={20} />, perfis: ['professor'] },
+  { label: 'Configurações', href: '/app/admin/configuracoes', icon: <Settings size={20} />, perfis: ['admin'] },
 ]
 
 export function Sidebar() {
@@ -175,22 +175,22 @@ export function Sidebar() {
                   >
                     {item.icon}
                     <span className="flex-1 truncate">{item.label}</span>
-                    {(item.href === '/secretaria/avisos-whatsapp' && avisosCount > 0) && (
+                    {(item.href === '/app/secretaria/avisos-whatsapp' && avisosCount > 0) && (
                       <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
                         {avisosCount > 99 ? '99+' : avisosCount}
                       </span>
                     )}
-                    {(item.href === '/professor/agenda' && agendaNaoLidas > 0) && (
+                    {(item.href === '/app/professor/agenda' && agendaNaoLidas > 0) && (
                       <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-yellow-500 px-1.5 text-[10px] font-bold text-white">
                         {agendaNaoLidas > 99 ? '99+' : agendaNaoLidas}
                       </span>
                     )}
-                    {(item.href === '/admin/aniversariantes' && aniversariantesHoje > 0) && (
+                    {(item.href === '/app/admin/aniversariantes' && aniversariantesHoje > 0) && (
                       <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-pink-500 px-1.5 text-[10px] font-bold text-white">
                         {aniversariantesHoje}
                       </span>
                     )}
-                    {(item.href === '/secretaria/solicitacoes' && solicitacoesCount > 0) && (
+                    {(item.href === '/app/secretaria/solicitacoes' && solicitacoesCount > 0) && (
                       <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-blue-500 px-1.5 text-[10px] font-bold text-white">
                         {solicitacoesCount > 99 ? '99+' : solicitacoesCount}
                       </span>

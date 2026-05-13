@@ -107,7 +107,7 @@ export async function gerarAvisosFaltas(): Promise<ActionResult<number>> {
       }
     }
 
-    revalidatePath('/secretaria/avisos-whatsapp')
+    revalidatePath('/app/secretaria/avisos-whatsapp')
     return { data: criados, error: null }
   } catch {
     return { data: null, error: 'Erro ao gerar avisos de falta' }
@@ -191,7 +191,7 @@ export async function gerarAvisosFinanceiro(): Promise<ActionResult<number>> {
       }
     }
 
-    revalidatePath('/secretaria/avisos-whatsapp')
+    revalidatePath('/app/secretaria/avisos-whatsapp')
     return { data: criados, error: null }
   } catch {
     return { data: null, error: 'Erro ao gerar avisos financeiros' }
@@ -265,7 +265,7 @@ export async function gerarAvisosComunicado(
       }
     }
 
-    revalidatePath('/secretaria/avisos-whatsapp')
+    revalidatePath('/app/secretaria/avisos-whatsapp')
     return { data: criados, error: null }
   } catch {
     return { data: null, error: 'Erro ao gerar avisos de comunicado' }
@@ -344,7 +344,7 @@ export async function marcarAvisoEnviado(id: string): Promise<ActionResult<null>
       .eq('id', id)
 
     if (error) return { data: null, error: error.message }
-    revalidatePath('/secretaria/avisos-whatsapp')
+    revalidatePath('/app/secretaria/avisos-whatsapp')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao marcar aviso' }
@@ -375,7 +375,7 @@ export async function marcarAvisosEnviados(ids: string[]): Promise<ActionResult<
       .in('id', ids)
 
     if (error) return { data: null, error: error.message }
-    revalidatePath('/secretaria/avisos-whatsapp')
+    revalidatePath('/app/secretaria/avisos-whatsapp')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao marcar avisos' }

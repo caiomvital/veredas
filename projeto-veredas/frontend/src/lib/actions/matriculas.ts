@@ -48,7 +48,7 @@ export async function criarMatricula(formData: FormData): Promise<ActionResult<n
     const { error } = await supabase.from('matriculas').insert(dados)
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/secretaria/matriculas')
+    revalidatePath('/app/secretaria/matriculas')
     return { data: null, error: null }
   } catch (e) {
     return { data: null, error: 'Erro ao realizar matrícula' }
@@ -68,7 +68,7 @@ export async function cancelarMatricula(id: string): Promise<ActionResult<null>>
 
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/secretaria/matriculas')
+    revalidatePath('/app/secretaria/matriculas')
     return { data: null, error: null }
   } catch (e) {
     return { data: null, error: 'Erro ao cancelar matrícula' }

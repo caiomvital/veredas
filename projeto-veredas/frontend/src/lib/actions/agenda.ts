@@ -183,7 +183,7 @@ export async function responderAgenda(formData: FormData): Promise<ActionResult<
     const { error } = await supabase.from('agenda_registros').insert(dados)
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/responsavel/agenda')
+    revalidatePath('/app/responsavel/agenda')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao responder' }

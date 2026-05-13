@@ -16,11 +16,11 @@ export interface AuthState {
 }
 
 const PERFIL_REDIRECTS: Record<Perfil, string> = {
-  admin: '/admin',
-  coordenador: '/coordenador',
-  secretaria: '/secretaria',
-  professor: '/professor',
-  responsavel: '/responsavel/dashboard',
+  admin: '/app/admin',
+  coordenador: '/app/coordenador',
+  secretaria: '/app/secretaria',
+  professor: '/app/professor',
+  responsavel: '/app/responsavel/dashboard',
 }
 
 export function useAuth() {
@@ -84,7 +84,7 @@ export function useAuth() {
     if (perfil && PERFIL_REDIRECTS[perfil]) {
       router.push(PERFIL_REDIRECTS[perfil])
     } else {
-      router.push('/admin')
+      router.push('/app/admin')
     }
 
     return data
@@ -92,11 +92,11 @@ export function useAuth() {
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut()
-    router.push('/login')
+    router.push('/app/login')
   }, [supabase, router])
 
   const getDashboardUrl = useCallback((perfil?: Perfil | null) => {
-    if (!perfil) return '/login'
+    if (!perfil) return '/app/login'
     return PERFIL_REDIRECTS[perfil]
   }, [])
 

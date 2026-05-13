@@ -5,28 +5,28 @@ import type { SetAllCookies } from '@supabase/ssr'
 type Perfil = 'admin' | 'coordenador' | 'secretaria' | 'professor' | 'responsavel'
 
 const ROTA_POR_PERFIL: Record<Perfil, string> = {
-  admin: '/admin',
-  coordenador: '/coordenador',
-  secretaria: '/secretaria',
-  professor: '/professor',
-  responsavel: '/responsavel/dashboard',
+  admin: '/app/admin',
+  coordenador: '/app/coordenador',
+  secretaria: '/app/secretaria',
+  professor: '/app/professor',
+  responsavel: '/app/responsavel/dashboard',
 }
 
 const PERMISSOES_ROTA: Record<string, Perfil[]> = {
-  '/admin': ['admin'],
-  '/coordenador': ['coordenador'],
-  '/secretaria': ['secretaria'],
-  '/professor': ['professor'],
-  '/responsavel': ['responsavel'],
-  '/comunicados': ['admin', 'coordenador', 'secretaria', 'professor', 'responsavel'],
-  '/calendario': ['admin', 'coordenador', 'secretaria', 'professor', 'responsavel'],
+  '/app/admin': ['admin'],
+  '/app/coordenador': ['coordenador'],
+  '/app/secretaria': ['secretaria'],
+  '/app/professor': ['professor'],
+  '/app/responsavel': ['responsavel'],
+  '/app/comunicados': ['admin', 'coordenador', 'secretaria', 'professor', 'responsavel'],
+  '/app/calendario': ['admin', 'coordenador', 'secretaria', 'professor', 'responsavel'],
 }
 
 const PERMISSOES_ROTA_ESPECIFICAS: Record<string, Perfil[]> = {
-  '/admin/financeiro': ['admin', 'secretaria'],
-  '/admin/funcionarios': ['admin', 'secretaria'],
-  '/secretaria/avisos-whatsapp': ['admin', 'secretaria'],
-  '/secretaria/ficha-aluno': ['admin', 'secretaria'],
+  '/app/admin/financeiro': ['admin', 'secretaria'],
+  '/app/admin/funcionarios': ['admin', 'secretaria'],
+  '/app/secretaria/avisos-whatsapp': ['admin', 'secretaria'],
+  '/app/secretaria/ficha-aluno': ['admin', 'secretaria'],
 }
 
 const ESCOLA_SLUG_COOKIE = 'escola_slug'
@@ -73,7 +73,7 @@ export async function middleware(request: NextRequest) {
   // ─── Landing pages públicas ───
   if (
     pathname === '/' ||
-    pathname === '/login' ||
+    pathname === '/app/login' ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
     pathname === '/favicon.ico'
@@ -103,7 +103,7 @@ export async function middleware(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
 
   if (!session) {
-    const loginUrl = new URL('/login', request.url)
+    const loginUrl = new URL('/app/login', request.url)
     loginUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(loginUrl)
   }
@@ -117,16 +117,18 @@ export async function middleware(request: NextRequest) {
   if (rotaEspecifica) {
     const [, perfisPermitidos] = rotaEspecifica
     if (perfil && !perfisPermitidos.includes(perfil)) {
-      const destino = ROTA_POR_PERFIL[perfil] ?? '/admin'
+      const destino = ROTA_POR_PERFIL[perfil] ?? '/app/admin'
       return NextResponse.redirect(new URL(destino, request.url))
     }
   } else {
-    const rotaBase = '/' + pathname.split('/')[1]
-    const perfisPermitidos = PERMISSOES_ROTA[rotaBase]
+    // Match against known base routes (now prefixed with /app/)
+    const rotaBase = Object.keys(PERMISSOES_ROTA)
+      .find((rota) => pathname === rota || pathname.startsWith(rota + '/'))
+    const perfisPermitidos = rotaBase ? PERMISSOES_ROTA[rotaBase] : undefined
 
     if (perfisPermitidos && perfil) {
       if (!perfisPermitidos.includes(perfil)) {
-        const destino = ROTA_POR_PERFIL[perfil] ?? '/admin'
+        const destino = ROTA_POR_PERFIL[perfil] ?? '/app/admin'
         return NextResponse.redirect(new URL(destino, request.url))
       }
     }

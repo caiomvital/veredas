@@ -85,7 +85,7 @@ export async function salvarMeusDados(formData: FormData): Promise<ActionResult<
       }
     }
 
-    revalidatePath('/responsavel/meus-dados')
+    revalidatePath('/app/responsavel/meus-dados')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao salvar dados' }

@@ -54,7 +54,7 @@ export async function criarTurma(formData: FormData): Promise<ActionResult<null>
     const { error } = await supabase.from('turmas').insert(dados)
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/admin/turmas')
+    revalidatePath('/app/admin/turmas')
     return { data: null, error: null }
   } catch (e) {
     return { data: null, error: 'Erro ao criar turma' }
@@ -75,7 +75,7 @@ export async function atualizarTurma(id: string, formData: FormData): Promise<Ac
     const { error } = await supabase.from('turmas').update(dados).eq('id', id)
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/admin/turmas')
+    revalidatePath('/app/admin/turmas')
     return { data: null, error: null }
   } catch (e) {
     return { data: null, error: 'Erro ao atualizar turma' }
@@ -88,7 +88,7 @@ export async function excluirTurma(id: string): Promise<ActionResult<null>> {
     const { error } = await supabase.from('turmas').update({ ativa: false }).eq('id', id)
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/admin/turmas')
+    revalidatePath('/app/admin/turmas')
     return { data: null, error: null }
   } catch (e) {
     return { data: null, error: 'Erro ao excluir turma' }
@@ -125,7 +125,7 @@ export async function criarDisciplina(formData: FormData): Promise<ActionResult<
     const { error } = await supabase.from('disciplinas').insert(dados)
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/admin/disciplinas')
+    revalidatePath('/app/admin/disciplinas')
     return { data: null, error: null }
   } catch (e) {
     return { data: null, error: 'Erro ao criar disciplina' }
@@ -138,7 +138,7 @@ export async function excluirDisciplina(id: string): Promise<ActionResult<null>>
     const { error } = await supabase.from('disciplinas').delete().eq('id', id)
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/admin/disciplinas')
+    revalidatePath('/app/admin/disciplinas')
     return { data: null, error: null }
   } catch (e) {
     return { data: null, error: 'Erro ao excluir disciplina' }

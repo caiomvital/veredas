@@ -62,7 +62,7 @@ export async function criarResponsavel(formData: FormData): Promise<ActionResult
     const { error } = await supabase.from('responsaveis').insert(dados)
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/admin/responsaveis')
+    revalidatePath('/app/admin/responsaveis')
     return { data: null, error: null }
   } catch (e) {
     return { data: null, error: 'Erro ao criar responsável' }
@@ -84,7 +84,7 @@ export async function atualizarResponsavel(id: string, formData: FormData): Prom
     const { error } = await supabase.from('responsaveis').update(dados).eq('id', id)
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/admin/responsaveis')
+    revalidatePath('/app/admin/responsaveis')
     return { data: null, error: null }
   } catch (e) {
     return { data: null, error: 'Erro ao atualizar responsável' }
@@ -101,7 +101,7 @@ export async function vincularAluno(responsavelId: string, alunoId: string, grau
     })
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/admin/responsaveis')
+    revalidatePath('/app/admin/responsaveis')
     return { data: null, error: null }
   } catch (e) {
     return { data: null, error: 'Erro ao vincular aluno' }
@@ -119,7 +119,7 @@ export async function desvincularAluno(responsavelId: string, alunoId: string): 
 
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/admin/responsaveis')
+    revalidatePath('/app/admin/responsaveis')
     return { data: null, error: null }
   } catch (e) {
     return { data: null, error: 'Erro ao desvincular aluno' }

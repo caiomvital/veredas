@@ -57,7 +57,7 @@ export async function criarSerie(formData: FormData): Promise<ActionResult<null>
 
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/admin/configuracoes')
+    revalidatePath('/app/admin/configuracoes')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao criar série' }
@@ -76,7 +76,7 @@ export async function atualizarSerie(id: string, formData: FormData): Promise<Ac
     const { error } = await supabase.from('series_escolares').update({ nome, nivel, ordem }).eq('id', id)
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/admin/configuracoes')
+    revalidatePath('/app/admin/configuracoes')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao atualizar série' }
@@ -89,7 +89,7 @@ export async function excluirSerie(id: string): Promise<ActionResult<null>> {
     const { error } = await supabase.from('series_escolares').update({ ativo: false }).eq('id', id)
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/admin/configuracoes')
+    revalidatePath('/app/admin/configuracoes')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao excluir série' }
@@ -127,7 +127,7 @@ export async function reordenarSerie(id: string, direcao: 'cima' | 'baixo'): Pro
     await supabase.from('series_escolares').update({ ordem: target.ordem }).eq('id', current.id)
     await supabase.from('series_escolares').update({ ordem: tempOrdem }).eq('id', target.id)
 
-    revalidatePath('/admin/configuracoes')
+    revalidatePath('/app/admin/configuracoes')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao reordenar série' }

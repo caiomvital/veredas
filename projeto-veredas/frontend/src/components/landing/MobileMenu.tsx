@@ -33,7 +33,7 @@ export function MobileMenu({ links }: { links: NavLink[] }) {
               {l.label}
             </a>
           ))}
-          <Link href="/login" onClick={() => setMenuOpen(false)}
+          <Link href="/app/login" onClick={() => setMenuOpen(false)}
             className="block mt-3 text-center rounded-lg border-2 border-zab-dourado px-4 py-2 text-sm font-semibold text-zab-dourado hover:bg-zab-dourado hover:text-white transition-all duration-200">
             Acessar o Sistema
           </Link>

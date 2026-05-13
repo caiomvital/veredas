@@ -227,7 +227,7 @@ export async function processarRematricula(
       processados++
     }
 
-    revalidatePath('/secretaria/rematricula')
+    revalidatePath('/app/secretaria/rematricula')
     return { data: { processados }, error: null }
   } catch {
     return { data: null, error: 'Erro ao processar rematrícula' }

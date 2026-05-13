@@ -195,7 +195,7 @@ export async function criarSolicitacao(formData: FormData): Promise<ActionResult
       .single()
 
     if (error) return { data: null, error: error.message }
-    revalidatePath('/responsavel/solicitacoes')
+    revalidatePath('/app/responsavel/solicitacoes')
     return { data: { id: data.id }, error: null }
   } catch {
     return { data: null, error: 'Erro ao criar solicitação' }
@@ -228,8 +228,8 @@ export async function responderSolicitacao(
       .eq('id', id)
 
     if (error) return { data: null, error: error.message }
-    revalidatePath('/secretaria/solicitacoes')
-    revalidatePath('/coordenador/solicitacoes')
+    revalidatePath('/app/secretaria/solicitacoes')
+    revalidatePath('/app/coordenador/solicitacoes')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao responder solicitação' }
@@ -245,7 +245,7 @@ export async function cancelarSolicitacao(id: string): Promise<ActionResult<null
       .eq('id', id)
 
     if (error) return { data: null, error: error.message }
-    revalidatePath('/responsavel/solicitacoes')
+    revalidatePath('/app/responsavel/solicitacoes')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao cancelar solicitação' }

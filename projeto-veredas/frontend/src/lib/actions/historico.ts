@@ -43,7 +43,7 @@ export async function criarHistorico(formData: FormData): Promise<ActionResult<n
     }
     const { error } = await supabase.from('historico_escolar').insert(dados)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/secretaria/historico')
+    revalidatePath('/app/secretaria/historico')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao criar registro' }
@@ -60,7 +60,7 @@ export async function atualizarHistorico(id: string, formData: FormData): Promis
     }
     const { error } = await supabase.from('historico_escolar').update(dados).eq('id', id)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/secretaria/historico')
+    revalidatePath('/app/secretaria/historico')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao atualizar registro' }
@@ -72,7 +72,7 @@ export async function excluirHistorico(id: string): Promise<ActionResult<null>> 
     const supabase = await createClient()
     const { error } = await supabase.from('historico_escolar').delete().eq('id', id)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/secretaria/historico')
+    revalidatePath('/app/secretaria/historico')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao excluir registro' }

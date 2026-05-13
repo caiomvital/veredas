@@ -32,7 +32,7 @@ export async function criarEvento(formData: FormData): Promise<ActionResult<null
     const { error } = await supabase.from('eventos_calendario').insert(dados)
     if (error) return { data: null, error: error.message }
 
-    revalidatePath('/calendario')
+    revalidatePath('/app/calendario')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao criar evento' }
@@ -70,7 +70,7 @@ export async function excluirEvento(id: string): Promise<ActionResult<null>> {
     const supabase = await createClient()
     const { error } = await supabase.from('eventos_calendario').delete().eq('id', id)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/calendario')
+    revalidatePath('/app/calendario')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao excluir evento' }

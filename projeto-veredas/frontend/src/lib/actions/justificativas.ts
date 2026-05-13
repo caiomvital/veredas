@@ -56,7 +56,7 @@ export async function justificarFalta(
     })
 
     if (error) return { data: null, error: error.message }
-    revalidatePath('/responsavel/frequencia')
+    revalidatePath('/app/responsavel/frequencia')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao justificar falta' }
@@ -141,7 +141,7 @@ export async function analisarJustificativa(
       .eq('id', id)
 
     if (error) return { data: null, error: error.message }
-    revalidatePath('/secretaria/justificativas')
+    revalidatePath('/app/secretaria/justificativas')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao analisar justificativa' }

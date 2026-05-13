@@ -141,7 +141,7 @@ function Header({ data }: { data: Record<string, unknown> }) {
               {l.label}
             </a>
           ))}
-          <Link href="/login"
+          <Link href="/app/login"
             className="ml-4 inline-flex h-9 items-center rounded-lg border-2 border-zab-dourado px-4 text-sm font-semibold text-zab-dourado hover:bg-zab-dourado hover:text-white transition-all duration-200">
             Acessar o Sistema
           </Link>

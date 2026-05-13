@@ -37,7 +37,7 @@ export async function salvarConfigMensalidade(formData: FormData): Promise<Actio
       onConflict: 'escola_id, serie, ano_letivo',
     })
     if (error) return { data: null, error: error.message }
-    revalidatePath('/admin/financeiro')
+    revalidatePath('/app/admin/financeiro')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao salvar configuração' }
@@ -49,7 +49,7 @@ export async function excluirConfigMensalidade(id: string): Promise<ActionResult
     const supabase = await createClient()
     const { error } = await supabase.from('config_mensalidades').delete().eq('id', id)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/admin/financeiro')
+    revalidatePath('/app/admin/financeiro')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao excluir configuração' }
@@ -98,7 +98,7 @@ export async function criarLancamentoExtra(formData: FormData): Promise<ActionRe
     }
     const { error } = await supabase.from('lancamentos_financeiros').insert(dados)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/admin/financeiro')
+    revalidatePath('/app/admin/financeiro')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao criar lançamento' }
@@ -150,7 +150,7 @@ export async function baixarPagamento(id: string, dataPagamento?: string): Promi
       .eq('id', id)
 
     if (error) return { data: null, error: error.message }
-    revalidatePath('/admin/financeiro')
+    revalidatePath('/app/admin/financeiro')
     return { data: { multa, numeroRecibo }, error: null }
   } catch {
     return { data: null, error: 'Erro ao registrar pagamento' }

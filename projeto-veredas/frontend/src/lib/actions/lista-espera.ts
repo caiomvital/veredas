@@ -47,7 +47,7 @@ export async function adicionarCandidato(formData: FormData): Promise<ActionResu
     })
 
     if (error) return { data: null, error: error.message }
-    revalidatePath('/secretaria/lista-espera')
+    revalidatePath('/app/secretaria/lista-espera')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao adicionar candidato' }
@@ -59,7 +59,7 @@ export async function excluirCandidato(id: string): Promise<ActionResult<null>> 
     const supabase = await createClient()
     const { error } = await supabase.from('lista_espera').delete().eq('id', id)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/secretaria/lista-espera')
+    revalidatePath('/app/secretaria/lista-espera')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao excluir candidato' }
@@ -71,7 +71,7 @@ export async function marcarNotificado(id: string): Promise<ActionResult<null>> 
     const supabase = await createClient()
     const { error } = await supabase.from('lista_espera').update({ notificado: true }).eq('id', id)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/secretaria/lista-espera')
+    revalidatePath('/app/secretaria/lista-espera')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao marcar como notificado' }

@@ -124,7 +124,7 @@ export async function salvarNotas(turmaDisciplinaId: string, notas: GradeRow[]):
     })
 
     if (error) return { data: null, error: error.message }
-    revalidatePath('/professor/notas')
+    revalidatePath('/app/professor/notas')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao salvar notas' }
@@ -182,7 +182,7 @@ export async function salvarFrequencias(turmaDisciplinaId: string, dataAula: str
 
     const { error } = await supabase.from('frequencias').insert(rows)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/professor/chamada')
+    revalidatePath('/app/professor/chamada')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao salvar frequências' }

@@ -33,7 +33,7 @@ export async function criarRegistroAula(formData: FormData): Promise<ActionResul
     }
     const { error } = await supabase.from('registro_aulas').insert(dados)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/professor/registro-aulas')
+    revalidatePath('/app/professor/registro-aulas')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao registrar aula' }
@@ -61,7 +61,7 @@ export async function atualizarRegistroAula(id: string, formData: FormData): Pro
     }
     const { error } = await supabase.from('registro_aulas').update(dados).eq('id', id)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/professor/registro-aulas')
+    revalidatePath('/app/professor/registro-aulas')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao atualizar registro' }
@@ -97,7 +97,7 @@ export async function criarAtividade(formData: FormData): Promise<ActionResult<n
     }
     const { error } = await supabase.from('atividades_casa').insert(dados)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/professor/atividades')
+    revalidatePath('/app/professor/atividades')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao criar atividade' }
@@ -125,7 +125,7 @@ export async function atualizarAtividade(id: string, formData: FormData): Promis
     }
     const { error } = await supabase.from('atividades_casa').update(dados).eq('id', id)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/professor/atividades')
+    revalidatePath('/app/professor/atividades')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao atualizar atividade' }
@@ -137,7 +137,7 @@ export async function excluirAtividade(id: string): Promise<ActionResult<null>> 
     const supabase = await createClient()
     const { error } = await supabase.from('atividades_casa').delete().eq('id', id)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/professor/atividades')
+    revalidatePath('/app/professor/atividades')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao excluir atividade' }
@@ -169,7 +169,7 @@ export async function registrarEntrega(atividadeId: string, matriculaId: string,
       observacao_professor: observacao ?? null,
     }, { onConflict: 'atividade_id, matricula_id' })
     if (error) return { data: null, error: error.message }
-    revalidatePath('/professor/atividades')
+    revalidatePath('/app/professor/atividades')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao registrar entrega' }
@@ -207,7 +207,7 @@ export async function criarPlanejamento(formData: FormData): Promise<ActionResul
     }
     const { error } = await supabase.from('planejamento_aulas').insert(dados)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/professor/planejamento')
+    revalidatePath('/app/professor/planejamento')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao criar planejamento' }
@@ -238,7 +238,7 @@ export async function atualizarPlanejamento(id: string, formData: FormData): Pro
     }
     const { error } = await supabase.from('planejamento_aulas').update(dados).eq('id', id)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/professor/planejamento')
+    revalidatePath('/app/professor/planejamento')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao atualizar planejamento' }
@@ -250,7 +250,7 @@ export async function excluirPlanejamento(id: string): Promise<ActionResult<null
     const supabase = await createClient()
     const { error } = await supabase.from('planejamento_aulas').delete().eq('id', id)
     if (error) return { data: null, error: error.message }
-    revalidatePath('/professor/planejamento')
+    revalidatePath('/app/professor/planejamento')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao excluir planejamento' }
@@ -368,7 +368,7 @@ export async function gerarDiario(turmaDisciplinaId: string, periodoId: string):
     }, { onConflict: 'turma_disciplina_id, periodo_id' })
 
     if (error) return { data: null, error: error.message }
-    revalidatePath('/professor/diarios')
+    revalidatePath('/app/professor/diarios')
     return { data: null, error: null }
   } catch {
     return { data: null, error: 'Erro ao gerar diário' }
