@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { getContagemPendentes } from '@/lib/actions/avisos-whatsapp'
+import { contarNaoLidosProfessor, contarNaoLidosResponsavel } from '@/lib/actions/agenda'
 
 interface NavItem {
   label: string
@@ -53,7 +54,9 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Atividades', href: '/professor/atividades', icon: <ClipboardList size={20} />, perfis: ['professor'] },
   { label: 'Planejamento', href: '/professor/planejamento', icon: <FileText size={20} />, perfis: ['professor'] },
   { label: 'Diários de Classe', href: '/professor/diarios', icon: <FileText size={20} />, perfis: ['professor'] },
+  { label: 'Agenda', href: '/professor/agenda', icon: <MessageCircle size={20} />, perfis: ['professor'] },
   { label: 'Diários de Classe', href: '/coordenador/diarios', icon: <FileText size={20} />, perfis: ['coordenador'] },
+  { label: 'Agenda', href: '/coordenador/agenda', icon: <MessageCircle size={20} />, perfis: ['coordenador'] },
   // Geral
   { label: 'Boletins', href: '/professor/boletins', icon: <FileText size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
   { label: 'Declarações', href: '/secretaria/declaracoes', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
@@ -74,12 +77,22 @@ export function Sidebar() {
   const { perfil, user, signOut } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [avisosCount, setAvisosCount] = useState(0)
+  const [agendaNaoLidas, setAgendaNaoLidas] = useState(0)
 
   useEffect(() => {
     getContagemPendentes().then((res) => {
       if (res.data) setAvisosCount(res.data.total)
     })
-  }, [])
+    if (perfil === 'professor') {
+      contarNaoLidosProfessor().then((res) => {
+        if (res.data) setAgendaNaoLidas(res.data)
+      })
+    } else if (perfil === 'responsavel') {
+      contarNaoLidosResponsavel().then((res) => {
+        if (res.data) setAgendaNaoLidas(res.data)
+      })
+    }
+  }, [perfil])
 
   const filteredItems = NAV_ITEMS.filter((item) => perfil && item.perfis.includes(perfil))
 
@@ -132,9 +145,14 @@ export function Sidebar() {
                   >
                     {item.icon}
                     <span className="flex-1 truncate">{item.label}</span>
-                    {item.href === '/secretaria/avisos-whatsapp' && avisosCount > 0 && (
+                    {(item.href === '/secretaria/avisos-whatsapp' && avisosCount > 0) && (
                       <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
                         {avisosCount > 99 ? '99+' : avisosCount}
+                      </span>
+                    )}
+                    {(item.href === '/professor/agenda' && agendaNaoLidas > 0) && (
+                      <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-yellow-500 px-1.5 text-[10px] font-bold text-white">
+                        {agendaNaoLidas > 99 ? '99+' : agendaNaoLidas}
                       </span>
                     )}
                   </Link>

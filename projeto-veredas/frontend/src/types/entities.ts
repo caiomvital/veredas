@@ -222,6 +222,23 @@ export interface EventoCalendario {
   created_at: string
 }
 
+// ---- Agenda do Aluno ----
+
+export type AgendaTipo = 'recado' | 'tarefa' | 'observacao' | 'resposta_responsavel'
+
+export interface AgendaRegistro {
+  id: string
+  escola_id: string
+  aluno_id: string
+  autor_id: string
+  tipo: AgendaTipo
+  conteudo: string
+  data_registro: string
+  lido_responsavel: boolean
+  lido_professor: boolean
+  created_at: string
+}
+
 // ---- Fase 7: Avisos WhatsApp ----
 
 export type AvisoTipo = 'falta' | 'financeiro' | 'comunicado'

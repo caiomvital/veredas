@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils/cn'
 import { useState, useEffect } from 'react'
+import { contarNaoLidosResponsavel } from '@/lib/actions/agenda'
 
 const NAV_ITEMS = [
   { label: 'Painel', href: '/responsavel/dashboard', icon: '📊' },
@@ -13,6 +14,7 @@ const NAV_ITEMS = [
   { label: 'Frequência', href: '/responsavel/frequencia', icon: '✅' },
   { label: 'Boletim', href: '/responsavel/boletim', icon: '📄' },
   { label: 'Comunicados', href: '/responsavel/comunicados', icon: '🔔' },
+  { label: 'Agenda', href: '/responsavel/agenda', icon: '💬' },
   { label: 'Calendário', href: '/responsavel/calendario', icon: '📅' },
 ]
 
@@ -22,11 +24,15 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   const pathname = usePathname()
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [agendaNaoLidas, setAgendaNaoLidas] = useState(0)
 
   useEffect(() => {
     if (!authLoading && perfil !== 'responsavel') {
       router.push('/login')
     }
+    contarNaoLidosResponsavel().then((res) => {
+      if (res.data) setAgendaNaoLidas(res.data)
+    })
   }, [authLoading, perfil, router])
 
   if (authLoading || perfil !== 'responsavel') {
@@ -61,10 +67,15 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
               return (
                 <Link key={item.href} href={item.href}
                   className={cn(
-                    'px-3 py-1.5 text-sm rounded-md transition-colors',
+                    'relative px-3 py-1.5 text-sm rounded-md transition-colors',
                     isActive ? 'bg-zab-verde-claro text-zab-verde font-semibold' : 'text-zab-texto-claro hover:text-zab-verde hover:bg-zab-verde-claro/50'
                   )}>
                   {item.label}
+                  {item.href === '/responsavel/agenda' && agendaNaoLidas > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+                      {agendaNaoLidas > 9 ? '9+' : agendaNaoLidas}
+                    </span>
+                  )}
                 </Link>
               )
             })}
@@ -86,10 +97,15 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
             {NAV_ITEMS.map((item) => (
               <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}
                 className={cn(
-                  'block px-3 py-2 text-sm rounded-md',
+                  'relative flex items-center px-3 py-2 text-sm rounded-md',
                   pathname === item.href ? 'bg-zab-verde-claro text-zab-verde font-semibold' : 'text-zab-texto-claro'
                 )}>
                 {item.icon} {item.label}
+                {item.href === '/responsavel/agenda' && agendaNaoLidas > 0 && (
+                  <span className="ml-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+                    {agendaNaoLidas > 9 ? '9+' : agendaNaoLidas}
+                  </span>
+                )}
               </Link>
             ))}
             <button onClick={signOut} className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md">
