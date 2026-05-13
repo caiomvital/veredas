@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from 'react'
 import { cn } from '@/lib/utils/cn'
-import { Search, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react'
+import { Search, ChevronUp, ChevronDown } from 'lucide-react'
+import { Pagination } from '@/components/ui/pagination'
 
 export interface Column<T> {
   key: string
@@ -35,7 +36,7 @@ export function DataTable<T>({
   actions,
   isLoading,
   emptyMessage = 'Nenhum registro encontrado.',
-  pageSize = 10,
+  pageSize = 20,
 }: DataTableProps<T>) {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
@@ -159,27 +160,13 @@ export function DataTable<T>({
 
       {/* Pagination */}
       {sorted.length > pageSize && (
-        <div className="flex items-center justify-between text-sm text-gray-500">
-          <span>
-            {currentPage * pageSize + 1}–{Math.min((currentPage + 1) * pageSize, sorted.length)} de {sorted.length}
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={currentPage === 0}
-              className="flex h-8 w-8 items-center justify-center rounded border border-border disabled:opacity-30"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-              disabled={currentPage >= totalPages - 1}
-              className="flex h-8 w-8 items-center justify-center rounded border border-border disabled:opacity-30"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
+        <Pagination
+          page={currentPage}
+          totalPages={totalPages}
+          total={sorted.length}
+          pageSize={pageSize}
+          onPageChange={setPage}
+        />
       )}
     </div>
   )

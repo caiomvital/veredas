@@ -25,6 +25,7 @@ import {
   Settings,
   Database,
   Cake,
+  RefreshCw,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { getContagemPendentes } from '@/lib/actions/avisos-whatsapp'
@@ -42,6 +43,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/admin', icon: <LayoutDashboard size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
   // Admin / Coordenação
   { label: 'Alunos', href: '/admin/alunos', icon: <Users size={20} />, perfis: ['admin', 'coordenador', 'secretaria'] },
+  { label: 'Funcionários', href: '/admin/funcionarios', icon: <Users size={20} />, perfis: ['admin', 'secretaria', 'coordenador'] },
   { label: 'Responsáveis', href: '/admin/responsaveis', icon: <Users size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Turmas', href: '/admin/turmas', icon: <BookOpen size={20} />, perfis: ['admin', 'coordenador'] },
   { label: 'Disciplinas', href: '/admin/disciplinas', icon: <BookOpen size={20} />, perfis: ['admin', 'coordenador'] },
@@ -64,16 +66,22 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Boletins', href: '/professor/boletins', icon: <FileText size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
   { label: 'Declarações', href: '/secretaria/declaracoes', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Ficha do Aluno', href: '/secretaria/ficha-aluno', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Contratos', href: '/secretaria/contratos', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Aniversariantes', href: '/admin/aniversariantes', icon: <Cake size={20} />, perfis: ['admin', 'coordenador'] },
   { label: 'Censo Escolar', href: '/admin/censo', icon: <Database size={20} />, perfis: ['admin'] },
   { label: 'Frequência Crítica', href: '/secretaria/frequencia-critica', icon: <ClipboardList size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Histórico Escolar', href: '/secretaria/historico', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Transferência', href: '/secretaria/transferencia', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Rematrícula', href: '/secretaria/rematricula', icon: <RefreshCw size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Financeiro', href: '/admin/financeiro', icon: <DollarSign size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Inadimplência', href: '/admin/inadimplencia', icon: <DollarSign size={20} />, perfis: ['admin'] },
   { label: 'Avisos WhatsApp', href: '/secretaria/avisos-whatsapp', icon: <MessageCircle size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Comunicados', href: '/comunicados', icon: <Bell size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
   { label: 'Calendário', href: '/calendario', icon: <Calendar size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
+  { label: 'Relatórios', href: '/admin/relatorios', icon: <BarChart3 size={20} />, perfis: ['admin'] },
+  { label: 'Exportação', href: '/admin/exportacao', icon: <Database size={20} />, perfis: ['admin'] },
+  { label: 'Relatórios', href: '/coordenador/relatorios', icon: <BarChart3 size={20} />, perfis: ['coordenador'] },
+  { label: 'Relatórios', href: '/professor/relatorios', icon: <BarChart3 size={20} />, perfis: ['professor'] },
   { label: 'Configurações', href: '/admin/configuracoes', icon: <Settings size={20} />, perfis: ['admin'] },
 ]
 

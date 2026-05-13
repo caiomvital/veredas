@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
+import { formatarCPF, validarCPF, limparCPF } from '@/lib/utils/cpf'
 import type { Funcionario } from '@/types/entities'
 
 export default function EditarFuncionarioPage() {
@@ -20,18 +21,30 @@ export default function EditarFuncionarioPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [cpf, setCpf] = useState('')
+  const [cpfError, setCpfError] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
       const result = await getFuncionario(id)
       if (result.error) setError(result.error)
-      else setFuncionario(result.data)
+      else if (result.data) {
+        setFuncionario(result.data)
+        setCpf(formatarCPF(result.data.cpf ?? ''))
+      }
       setIsLoading(false)
     }
     load()
   }, [id])
 
   async function handleSave(formData: FormData) {
+    const cleaned = limparCPF(cpf)
+    if (!cleaned || cleaned.length !== 11 || !validarCPF(cpf)) {
+      setCpfError('CPF inválido')
+      setIsSaving(false)
+      return
+    }
+    formData.set('cpf', cleaned)
     setIsSaving(true)
     setError(null)
     const result = await atualizarFuncionario(id, formData)
@@ -85,7 +98,16 @@ export default function EditarFuncionarioPage() {
               defaultValue={funcionario.nome_completo} />
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input id="cpf" name="cpf" label="CPF" required defaultValue={funcionario.cpf ?? ''} />
+              <Input id="cpf" name="cpf" label="CPF" required
+                value={cpf}
+                onChange={(e) => setCpf(formatarCPF(e.target.value.replace(/\D/g, '')))}
+                onBlur={() => {
+                  const cleaned = limparCPF(cpf)
+                  if (!cleaned || cleaned.length !== 11 || !validarCPF(cpf)) setCpfError('CPF inválido')
+                  else setCpfError(null)
+                }}
+                error={cpfError ?? undefined}
+              />
               <Input id="email" name="email" label="E-mail" type="email" required defaultValue={funcionario.email} />
             </div>
 
