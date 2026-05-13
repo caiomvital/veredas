@@ -24,6 +24,7 @@ const PERMISSOES_ROTA: Record<string, Perfil[]> = {
 
 const PERMISSOES_ROTA_ESPECIFICAS: Record<string, Perfil[]> = {
   '/admin/financeiro': ['admin', 'secretaria'],
+  '/admin/funcionarios': ['admin', 'secretaria'],
   '/secretaria/avisos-whatsapp': ['admin', 'secretaria'],
   '/secretaria/ficha-aluno': ['admin', 'secretaria'],
 }
@@ -109,10 +110,13 @@ export async function middleware(request: NextRequest) {
 
   const perfil = session.user.app_metadata.perfil as Perfil | undefined
 
-  const perfisPermitidosEspecificos = PERMISSOES_ROTA_ESPECIFICAS[pathname]
+  // Check specific routes first (exact match or prefix match)
+  const rotaEspecifica = Object.entries(PERMISSOES_ROTA_ESPECIFICAS)
+    .find(([rota]) => pathname === rota || pathname.startsWith(rota + '/'))
 
-  if (perfisPermitidosEspecificos) {
-    if (perfil && !perfisPermitidosEspecificos.includes(perfil)) {
+  if (rotaEspecifica) {
+    const [, perfisPermitidos] = rotaEspecifica
+    if (perfil && !perfisPermitidos.includes(perfil)) {
       const destino = ROTA_POR_PERFIL[perfil] ?? '/admin'
       return NextResponse.redirect(new URL(destino, request.url))
     }
