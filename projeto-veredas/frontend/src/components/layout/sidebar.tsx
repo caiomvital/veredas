@@ -70,6 +70,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Aniversariantes', href: '/admin/aniversariantes', icon: <Cake size={20} />, perfis: ['admin', 'coordenador'] },
   { label: 'Censo Escolar', href: '/admin/censo', icon: <Database size={20} />, perfis: ['admin'] },
   { label: 'Frequência Crítica', href: '/secretaria/frequencia-critica', icon: <ClipboardList size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Justificativas', href: '/secretaria/justificativas', icon: <ClipboardList size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Histórico Escolar', href: '/secretaria/historico', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Transferência', href: '/secretaria/transferencia', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Rematrícula', href: '/secretaria/rematricula', icon: <RefreshCw size={20} />, perfis: ['admin', 'secretaria'] },
@@ -82,6 +83,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Exportação', href: '/admin/exportacao', icon: <Database size={20} />, perfis: ['admin'] },
   { label: 'Relatórios', href: '/coordenador/relatorios', icon: <BarChart3 size={20} />, perfis: ['coordenador'] },
   { label: 'Relatórios', href: '/professor/relatorios', icon: <BarChart3 size={20} />, perfis: ['professor'] },
+  { label: 'Recuperação', href: '/professor/recuperacao', icon: <BarChart3 size={20} />, perfis: ['professor'] },
   { label: 'Configurações', href: '/admin/configuracoes', icon: <Settings size={20} />, perfis: ['admin'] },
 ]
 

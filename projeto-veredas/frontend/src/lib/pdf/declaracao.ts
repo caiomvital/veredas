@@ -13,6 +13,8 @@ export interface DeclaracaoPDFData {
   anoLetivo: number
   dataAtual: string
   nomeMae?: string
+  diretorNome?: string
+  diretorCargo?: string
 }
 
 function replaceTemplateVars(text: string, data: DeclaracaoPDFData): string {
@@ -25,6 +27,8 @@ function replaceTemplateVars(text: string, data: DeclaracaoPDFData): string {
     .replace(/\{\{turno\}\}/g, data.turmaTurno)
     .replace(/\{\{data_atual\}\}/g, data.dataAtual)
     .replace(/\{\{nome_mae\}\}/g, data.nomeMae ?? '')
+    .replace(/\{\{diretor_nome\}\}/g, data.diretorNome ?? '')
+    .replace(/\{\{diretor_cargo\}\}/g, data.diretorCargo ?? '')
 }
 
 export function gerarDeclaracaoPDF(data: DeclaracaoPDFData): jsPDF {
@@ -106,7 +110,13 @@ export function gerarDeclaracaoPDF(data: DeclaracaoPDFData): jsPDF {
   doc.line(pageWidth / 2 - 30, y, pageWidth / 2 + 30, y)
   y += 5
   doc.setFontSize(9)
-  doc.text(data.schoolName, pageWidth / 2, y, { align: 'center' })
+  if (data.diretorNome && data.diretorCargo) {
+    doc.text(data.diretorNome, pageWidth / 2, y, { align: 'center' })
+    y += 4
+    doc.text(data.diretorCargo, pageWidth / 2, y, { align: 'center' })
+  } else {
+    doc.text(data.schoolName, pageWidth / 2, y, { align: 'center' })
+  }
 
   return doc
 }

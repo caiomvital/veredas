@@ -68,7 +68,7 @@ export default function RematriculaPage() {
   }
 
   async function handleProcess() {
-    const selecionados = alunos.filter((a) => !a.jaRematriculado)
+    const selecionados = alunos.filter((a) => !a.jaRematriculado && !a.ehConcluinte)
     if (selecionados.length === 0) {
       toast.info('Nenhum aluno pendente de rematrícula')
       return
@@ -94,7 +94,8 @@ export default function RematriculaPage() {
     setIsProcessing(false)
   }
 
-  const pendentes = alunos.filter((a) => !a.jaRematriculado)
+  const pendentes = alunos.filter((a) => !a.jaRematriculado && !a.ehConcluinte)
+  const concluintes = alunos.filter((a) => a.ehConcluinte)
   const jaFeitos = alunos.filter((a) => a.jaRematriculado)
 
   return (
@@ -150,7 +151,20 @@ export default function RematriculaPage() {
                 <p className="text-sm">Todos os alunos já foram rematriculados para {anoDestino}.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <>
+                {/* Aviso de concluintes */}
+                {pendentes.filter((a) => a.ehConcluinte).length > 0 && (
+                  <div className="mb-4 rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-700">
+                    🎓 {pendentes.filter((a) => a.ehConcluinte).length} aluno(s) concluinte(s) — não serão rematriculados.
+                  </div>
+                )}
+                {/* Aviso de turma não cadastrada */}
+                {pendentes.filter((a) => a.semTurmaDisponivel).length > 0 && (
+                  <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700">
+                    ⚠️ {pendentes.filter((a) => a.semTurmaDisponivel).length} aluno(s) sem turma disponível para a série sugerida. Crie as turmas em {anoDestino} antes de rematricular.
+                  </div>
+                )}
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border text-left text-xs font-semibold uppercase text-gray-500">
@@ -173,46 +187,69 @@ export default function RematriculaPage() {
                           </Badge>
                         </td>
                         <td className="px-3 py-2.5">
-                          <div className="flex items-center gap-2">
-                            <ArrowRight size={14} className="text-gray-400 shrink-0" />
-                            {a.turmaSugeridaId ? (
-                              <select
-                                value={getTurmaId(a) ?? ''}
-                                onChange={(e) => handleOverride(a.alunoId, e.target.value)}
-                                className="rounded border border-border px-2 py-1 text-sm"
-                              >
-                                <optgroup label={`Sugerido: ${a.serieSugerida}`}>
-                                  {turmasDestino
-                                    .filter((t) => t.serie === a.serieSugerida)
-                                    .map((t) => (
-                                      <option key={t.id} value={t.id}>
-                                        {t.codigo} — {t.serie} ({t.turno})
-                                      </option>
-                                    ))}
-                                </optgroup>
-                                <optgroup label="Outras turmas">
-                                  {turmasDestino
-                                    .filter((t) => t.serie !== a.serieSugerida)
-                                    .map((t) => (
-                                      <option key={t.id} value={t.id}>
-                                        {t.codigo} — {t.serie} ({t.turno})
-                                      </option>
-                                    ))}
-                                </optgroup>
-                              </select>
-                            ) : (
-                              <span className="text-amber-600 text-xs">
-                                {a.turmaSugeridaCodigo}
-                              </span>
-                            )}
-                          </div>
+                          {a.ehConcluinte ? (
+                            <span className="text-blue-600 text-xs font-medium">🎓 Concluinte</span>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <ArrowRight size={14} className="text-gray-400 shrink-0" />
+                              {a.turmaSugeridaId ? (
+                                <select
+                                  value={getTurmaId(a) ?? ''}
+                                  onChange={(e) => handleOverride(a.alunoId, e.target.value)}
+                                  className="rounded border border-border px-2 py-1 text-sm"
+                                >
+                                  <optgroup label={`Sugerido: ${a.serieSugerida}`}>
+                                    {turmasDestino
+                                      .filter((t) => t.serie === a.serieSugerida)
+                                      .map((t) => (
+                                        <option key={t.id} value={t.id}>
+                                          {t.codigo} — {t.serie} ({t.turno})
+                                        </option>
+                                      ))}
+                                  </optgroup>
+                                  <optgroup label="Outras turmas">
+                                    {turmasDestino
+                                      .filter((t) => t.serie !== a.serieSugerida)
+                                      .map((t) => (
+                                        <option key={t.id} value={t.id}>
+                                          {t.codigo} — {t.serie} ({t.turno})
+                                        </option>
+                                      ))}
+                                  </optgroup>
+                                </select>
+                              ) : (
+                                <span className={a.semTurmaDisponivel ? 'text-amber-600 text-xs font-medium' : 'text-amber-600 text-xs'}>
+                                  {a.turmaSugeridaCodigo}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+            </>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {concluintes.length > 0 && (
+        <Card className="mb-6 border-blue-200">
+          <CardContent className="p-6">
+            <h2 className="mb-3 text-base font-semibold text-gray-800">
+              Concluintes
+              <span className="ml-2 text-sm font-normal text-gray-400">({concluintes.length})</span>
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {concluintes.map((a) => (
+                <span key={a.alunoId} className="flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-700">
+                  🎓 {a.alunoNome}
+                </span>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}

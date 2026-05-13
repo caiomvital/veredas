@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { label: 'Painel', href: '/responsavel/dashboard', icon: '📊' },
   { label: 'Notas', href: '/responsavel/notas', icon: '📝' },
   { label: 'Frequência', href: '/responsavel/frequencia', icon: '✅' },
+  { label: 'Financeiro', href: '/responsavel/financeiro', icon: '💰' },
   { label: 'Boletim', href: '/responsavel/boletim', icon: '📄' },
   { label: 'Comunicados', href: '/responsavel/comunicados', icon: '🔔' },
   { label: 'Agenda', href: '/responsavel/agenda', icon: '💬' },

@@ -21,12 +21,31 @@ export interface AlunoDesempenho {
   situacao: 'aprovado' | 'recuperacao' | 'reprovado' | 'reprovado_falta' | 'em_andamento'
 }
 
+async function getEscolaConfigAcademica() {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const escolaId = user?.app_metadata?.escola_id as string | undefined
+    if (!escolaId) return { mediaMinima: 7, temRecFinal: false }
+
+    const { data } = await supabase.from('escolas').select('config_academica').eq('id', escolaId).single()
+    const config = data?.config_academica as Record<string, unknown> | undefined
+    return {
+      mediaMinima: (config?.media_minima as number) ?? 7,
+      temRecFinal: (config?.tem_recuperacao_final as boolean) ?? false,
+    }
+  } catch {
+    return { mediaMinima: 7, temRecFinal: false }
+  }
+}
+
 export async function calcularDesempenhoTurma(
   turmaId: string,
   periodoId: string
 ): Promise<ActionResult<AlunoDesempenho[]>> {
   try {
     const supabase = await createClient()
+    const { mediaMinima, temRecFinal } = await getEscolaConfigAcademica()
 
     // Buscar alunos com matrícula ativa na turma
     const { data: matriculas } = await supabase
@@ -71,23 +90,32 @@ export async function calcularDesempenhoTurma(
         const notasDisc = notasAluno.filter((n) => n.turma_disciplina_id === tdp.id)
         const prova = notasDisc.find((n) => n.tipo === 'prova')?.valor ?? 0
         const trabalho = notasDisc.find((n) => n.tipo === 'trabalho')?.valor ?? 0
-        const recuperacao = notasDisc.find((n) => n.tipo === 'recuperacao')?.valor
+        const recParalela = notasDisc.find((n) => n.tipo === 'recuperacao_paralela')?.valor
+        const recFinal = notasDisc.find((n) => n.tipo === 'recuperacao_final')?.valor
         const mediaFinal = notasDisc.find((n) => n.tipo === 'media_final')?.valor
 
         // Média bimestral = (Prova + Trabalho) / 2
         let mediaBimestral = (prova + trabalho) / 2
 
-        // Se houver recuperação e média < 5.0: média = (média + recuperação) / 2
-        if (recuperacao !== undefined && mediaBimestral < 5) {
-          mediaBimestral = (mediaBimestral + recuperacao) / 2
+        // Recuperação paralela: se média < mediaMinima e há nota de recuperação
+        if (recParalela !== undefined && mediaBimestral < mediaMinima) {
+          mediaBimestral = (mediaBimestral + recParalela) / 2
+        }
+
+        // Recuperação final: média = (média + nota_recuperação_final) / 2
+        let mediaFinalCalc: number | undefined
+        if (recFinal !== undefined) {
+          mediaFinalCalc = (mediaBimestral + recFinal) / 2
+        } else if (mediaFinal !== undefined) {
+          mediaFinalCalc = mediaFinal
         }
 
         return {
           disciplinaId: tdp.disciplina_id,
           disciplinaNome: tdp.disciplinas.nome,
           mediaBimestral: Math.round(mediaBimestral * 10) / 10,
-          notaRecuperacao: recuperacao,
-          mediaFinal: mediaFinal ?? undefined,
+          notaRecuperacao: recParalela ?? recFinal,
+          mediaFinal: mediaFinalCalc !== undefined ? Math.round(mediaFinalCalc * 10) / 10 : undefined,
         }
       })
 
@@ -103,9 +131,9 @@ export async function calcularDesempenhoTurma(
 
       // Situação
       let situacao: AlunoDesempenho['situacao'] = 'em_andamento'
-      if (mediaGeral >= 7 && frequenciaPct >= 75) situacao = 'aprovado'
+      if (mediaGeral >= mediaMinima && frequenciaPct >= 75) situacao = 'aprovado'
       else if (frequenciaPct < 75) situacao = 'reprovado_falta'
-      else if (mediaGeral >= 5) situacao = 'recuperacao'
+      else if (mediaGeral >= mediaMinima * 0.7) situacao = 'recuperacao'
       else situacao = 'reprovado'
 
       return {

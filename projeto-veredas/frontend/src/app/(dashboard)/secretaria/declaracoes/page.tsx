@@ -203,20 +203,20 @@ export default function DeclaracoesPage() {
     setIsGeneratingPDF(true)
     setError(null)
     try {
+      const textos = config?.textos as Record<string, string> | undefined
+      const endereco = config?.endereco as Record<string, string> | undefined
+      const enderecoObj = endereco ? {
+        rua: endereco.rua, numero: endereco.numero,
+        bairro: endereco.bairro, cidade: endereco.cidade, uf: endereco.uf,
+      } : undefined
+
       if (tab === 'matricula' && declaracaoData) {
         const { gerarDeclaracaoPDF } = await import('@/lib/pdf/declaracao')
-        const endereco = config?.endereco as Record<string, string> | undefined
         const doc = gerarDeclaracaoPDF({
           schoolName: config?.nome ?? 'Escola',
           schoolCnpj: config?.cnpj ?? undefined,
-          schoolEndereco: endereco ? {
-            rua: endereco.rua,
-            numero: endereco.numero,
-            bairro: endereco.bairro,
-            cidade: endereco.cidade,
-            uf: endereco.uf,
-          } : undefined,
-          templateDeclaracao: (config?.textos as Record<string, string> | undefined)?.template_declaracao ?? undefined,
+          schoolEndereco: enderecoObj,
+          templateDeclaracao: textos?.template_declaracao ?? undefined,
           alunoNome: selectedAluno.nome_completo,
           alunoMatricula: selectedAluno.matricula,
           turmaCodigo: declaracaoData.turmaCodigo,
@@ -225,21 +225,17 @@ export default function DeclaracoesPage() {
           anoLetivo: declaracaoData.anoLetivo,
           dataAtual: new Date().toLocaleDateString('pt-BR'),
           nomeMae: selectedAluno.nome_mae ?? undefined,
+          diretorNome: textos?.assinante_nome ?? undefined,
+          diretorCargo: textos?.assinante_cargo ?? undefined,
         })
         doc.save(`declaracao-matricula-${selectedAluno.matricula}.pdf`)
       } else if (tab === 'frequencia' && frequenciaData) {
         const { gerarDeclaracaoFrequenciaPDF } = await import('@/lib/pdf/declaracao-frequencia')
-        const endereco = config?.endereco as Record<string, string> | undefined
         const doc = gerarDeclaracaoFrequenciaPDF({
           schoolName: config?.nome ?? 'Escola',
           schoolCnpj: config?.cnpj ?? undefined,
-          schoolEndereco: endereco ? {
-            rua: endereco.rua,
-            numero: endereco.numero,
-            bairro: endereco.bairro,
-            cidade: endereco.cidade,
-            uf: endereco.uf,
-          } : undefined,
+          schoolEndereco: enderecoObj,
+          templateDeclaracao: textos?.template_declaracao_frequencia ?? undefined,
           alunoNome: selectedAluno.nome_completo,
           alunoMatricula: selectedAluno.matricula,
           turmaCodigo: frequenciaData.turmaCodigo,
@@ -252,6 +248,8 @@ export default function DeclaracoesPage() {
           totalFaltas: frequenciaData.totalFaltas,
           frequenciaPct: frequenciaData.frequenciaPct,
           dataAtual: new Date().toLocaleDateString('pt-BR'),
+          diretorNome: textos?.assinante_nome ?? undefined,
+          diretorCargo: textos?.assinante_cargo ?? undefined,
         })
         doc.save(`declaracao-frequencia-${selectedAluno.matricula}.pdf`)
       }

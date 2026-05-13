@@ -4,6 +4,14 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { ActionResult } from './types'
 
+const NIVEL_ORDER = ['infantil', 'fund1', 'fund2', 'medio']
+const NIVEL_LABEL: Record<string, string> = {
+  infantil: 'Educação Infantil',
+  fund1: 'Ensino Fundamental I',
+  fund2: 'Ensino Fundamental II',
+  medio: 'Ensino Médio',
+}
+
 export interface RematriculaAluno {
   matriculaId: string
   alunoId: string
@@ -16,6 +24,8 @@ export interface RematriculaAluno {
   turmaSugeridaId: string | null
   turmaSugeridaCodigo: string
   jaRematriculado: boolean
+  ehConcluinte: boolean
+  semTurmaDisponivel: boolean
 }
 
 export async function listarCandidatosRematricula(anoDestino: number): Promise<ActionResult<{
@@ -30,22 +40,66 @@ export async function listarCandidatosRematricula(anoDestino: number): Promise<A
 
     const anoAtual = anoDestino - 1
 
-    // Buscar séries escolares para determinar próxima série
+    // Buscar séries escolares configuradas
     const { data: seriesData } = await supabase
       .from('series_escolares')
       .select('*')
       .eq('escola_id', escolaId)
       .eq('ativo', true)
       .order('ordem')
-    const series = seriesData ?? []
-    const seriesOrdem: Record<string, number> = {}
-    for (const s of series) seriesOrdem[s.nome] = s.ordem
 
-    function getProximaSerie(serieAtual: string): string {
+    const activeSeries: { id: string; nivel: string; nome: string; ordem: number }[] = seriesData ?? []
+    const seriesOrdem: Record<string, number> = {}
+    for (const s of activeSeries) seriesOrdem[s.nome] = s.ordem
+
+    // Agrupar séries por nível para detectar último ano de cada nível
+    const seriesPorNivel = new Map<string, { nome: string; ordem: number }[]>()
+    for (const s of activeSeries) {
+      if (!seriesPorNivel.has(s.nivel)) seriesPorNivel.set(s.nivel, [])
+      seriesPorNivel.get(s.nivel)!.push({ nome: s.nome, ordem: s.ordem })
+    }
+
+    // Última série de cada nível
+    const ultimaPorNivel = new Map<string, string>()
+    for (const [nivel, series] of seriesPorNivel) {
+      series.sort((a, b) => b.ordem - a.ordem)
+      ultimaPorNivel.set(nivel, series[0].nome)
+    }
+
+    // Última série de toda a escola (último nível com maior ordem)
+    const todosOsNiveis = [...seriesPorNivel.entries()]
+      .map(([nivel, series]) => ({ nivel, ultimaOrdem: Math.max(...series.map(s => s.ordem)), series }))
+      .sort((a, b) => b.ultimaOrdem - a.ultimaOrdem)
+
+    // Maior ordem = série final da escola
+    let maiorOrdem = -1
+    let serieFinalEscola = ''
+    for (const s of activeSeries) {
+      if (s.ordem > maiorOrdem) {
+        maiorOrdem = s.ordem
+        serieFinalEscola = s.nome
+      }
+    }
+
+    function getProximaSerie(serieAtual: string): { serie: string; ehConcluinte: boolean } {
       const ordemAtual = seriesOrdem[serieAtual]
-      if (ordemAtual === undefined) return serieAtual
-      const proxima = series.find((s) => s.ordem === ordemAtual + 1)
-      return proxima?.nome ?? serieAtual
+      if (ordemAtual === undefined) return { serie: serieAtual, ehConcluinte: false }
+
+      // Verificar se é a última série da escola
+      if (serieAtual === serieFinalEscola) {
+        return { serie: 'Concluinte', ehConcluinte: true }
+      }
+
+      const proxima = activeSeries.find((s) => s.ordem === ordemAtual + 1)
+      if (proxima) return { serie: proxima.nome, ehConcluinte: false }
+
+      // Se não encontrou próxima série (entre níveis), buscar próxima ordem disponível
+      const seriesOrdenadas = activeSeries.sort((a, b) => a.ordem - b.ordem)
+      for (const s of seriesOrdenadas) {
+        if (s.ordem > ordemAtual) return { serie: s.nome, ehConcluinte: false }
+      }
+
+      return { serie: 'Concluinte', ehConcluinte: true }
     }
 
     // Buscar turmas do ano atual e destino
@@ -101,11 +155,15 @@ export async function listarCandidatosRematricula(anoDestino: number): Promise<A
         else if (hist === 'reprovado') situacao = 'reprovado'
 
         let serieSugerida = turmaAtual.serie
+        let ehConcluinte = false
         if (situacao === 'aprovado') {
-          serieSugerida = getProximaSerie(turmaAtual.serie)
+          const prox = getProximaSerie(turmaAtual.serie)
+          serieSugerida = prox.serie
+          ehConcluinte = prox.ehConcluinte
         }
 
         const turmaSugerida = turmasDestinoMap.get(serieSugerida)
+        const semTurmaDisponivel = !ehConcluinte && !turmaSugerida && serieSugerida !== turmaAtual.serie
 
         return {
           matriculaId: m.id,
@@ -117,8 +175,16 @@ export async function listarCandidatosRematricula(anoDestino: number): Promise<A
           situacao,
           serieSugerida,
           turmaSugeridaId: turmaSugerida?.id ?? null,
-          turmaSugeridaCodigo: turmaSugerida ? `${turmaSugerida.codigo} — ${turmaSugerida.serie}` : `[Criar turma: ${serieSugerida}]`,
+          turmaSugeridaCodigo: turmaSugerida
+            ? `${turmaSugerida.codigo} — ${turmaSugerida.serie}`
+            : semTurmaDisponivel
+              ? `⚠️ Nenhuma turma em ${turmasDestino?.[0]?.ano_letivo ?? anoDestino} para "${serieSugerida}"`
+              : ehConcluinte
+                ? 'Concluinte — não requer rematrícula'
+                : `[Criar turma: ${serieSugerida}]`,
           jaRematriculado: jaRematriculados.has(m.aluno_id),
+          ehConcluinte,
+          semTurmaDisponivel,
         }
       })
 
