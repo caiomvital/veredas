@@ -34,6 +34,12 @@ export interface Aluno {
   status: 'ativo' | 'inativo' | 'transferido' | 'concluido'
   lgpd_autorizacao_imagem: boolean
   lgpd_autorizacao_dados: boolean
+  tipo_sanguineo: string | null
+  alergias: string | null
+  medicamentos: string | null
+  plano_saude: string | null
+  observacoes_medicas: string | null
+  pode_sair_sozinho: boolean
   created_at: string
 }
 

@@ -25,6 +25,7 @@ const PERMISSOES_ROTA: Record<string, Perfil[]> = {
 const PERMISSOES_ROTA_ESPECIFICAS: Record<string, Perfil[]> = {
   '/admin/financeiro': ['admin', 'secretaria'],
   '/secretaria/avisos-whatsapp': ['admin', 'secretaria'],
+  '/secretaria/ficha-aluno': ['admin', 'secretaria'],
 }
 
 const ESCOLA_SLUG_COOKIE = 'escola_slug'

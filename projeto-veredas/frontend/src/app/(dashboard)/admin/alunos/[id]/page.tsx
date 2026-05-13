@@ -105,6 +105,30 @@ export default function EditarAlunoPage() {
               <Input id="nome_pai" name="nome_pai" label="Nome do pai" defaultValue={aluno.nome_pai ?? ''} />
             </div>
 
+            {/* Informações de Saúde */}
+            <fieldset className="rounded border border-border p-4">
+              <legend className="text-sm font-medium text-[var(--color-primary-700)]">Informações de Saúde</legend>
+              <div className="mt-2 grid gap-4 sm:grid-cols-2">
+                <Input id="tipo_sanguineo" name="tipo_sanguineo" label="Tipo Sanguíneo" placeholder="Ex: A+" defaultValue={aluno.tipo_sanguineo ?? ''} />
+                <Input id="plano_saude" name="plano_saude" label="Plano de Saúde" placeholder="Nome do plano" defaultValue={aluno.plano_saude ?? ''} />
+              </div>
+              <div className="mt-4">
+                <Input id="alergias" name="alergias" label="Alergias" placeholder="Descreva as alergias, se houver" defaultValue={aluno.alergias ?? ''} />
+              </div>
+              <div className="mt-4">
+                <Input id="medicamentos" name="medicamentos" label="Medicamentos de uso contínuo" placeholder="Descreva os medicamentos, se houver" defaultValue={aluno.medicamentos ?? ''} />
+              </div>
+              <div className="mt-4">
+                <Input id="observacoes_medicas" name="observacoes_medicas" label="Observações Médicas" placeholder="Outras observações relevantes" defaultValue={aluno.observacoes_medicas ?? ''} />
+              </div>
+              <div className="mt-4 space-y-2">
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="pode_sair_sozinho" className="rounded border-border" defaultChecked={aluno.pode_sair_sozinho} />
+                  Aluno pode sair sozinho da escola
+                </label>
+              </div>
+            </fieldset>
+
             <Select id="status" name="status" label="Status"
               defaultValue={aluno.status}
               options={[

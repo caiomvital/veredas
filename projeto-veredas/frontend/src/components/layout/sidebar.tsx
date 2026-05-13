@@ -60,6 +60,7 @@ const NAV_ITEMS: NavItem[] = [
   // Geral
   { label: 'Boletins', href: '/professor/boletins', icon: <FileText size={20} />, perfis: ['admin', 'coordenador', 'secretaria', 'professor'] },
   { label: 'Declarações', href: '/secretaria/declaracoes', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
+  { label: 'Ficha do Aluno', href: '/secretaria/ficha-aluno', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Frequência Crítica', href: '/secretaria/frequencia-critica', icon: <ClipboardList size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Histórico Escolar', href: '/secretaria/historico', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
   { label: 'Transferência', href: '/secretaria/transferencia', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },

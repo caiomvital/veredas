@@ -88,6 +88,12 @@ export async function criarAluno(formData: FormData): Promise<ActionResult<null>
       },
       lgpd_autorizacao_imagem: formData.get('lgpd_autorizacao_imagem') === 'on',
       lgpd_autorizacao_dados: formData.get('lgpd_autorizacao_dados') === 'on',
+      tipo_sanguineo: (formData.get('tipo_sanguineo') as string) || null,
+      alergias: (formData.get('alergias') as string) || null,
+      medicamentos: (formData.get('medicamentos') as string) || null,
+      plano_saude: (formData.get('plano_saude') as string) || null,
+      observacoes_medicas: (formData.get('observacoes_medicas') as string) || null,
+      pode_sair_sozinho: formData.get('pode_sair_sozinho') === 'on',
     }
 
     const { error } = await supabase.from('alunos').insert(dados)
@@ -129,6 +135,12 @@ export async function atualizarAluno(id: string, formData: FormData): Promise<Ac
       lgpd_autorizacao_imagem: formData.get('lgpd_autorizacao_imagem') === 'on',
       lgpd_autorizacao_dados: formData.get('lgpd_autorizacao_dados') === 'on',
       status: (formData.get('status') as string) || 'ativo',
+      tipo_sanguineo: (formData.get('tipo_sanguineo') as string) || null,
+      alergias: (formData.get('alergias') as string) || null,
+      medicamentos: (formData.get('medicamentos') as string) || null,
+      plano_saude: (formData.get('plano_saude') as string) || null,
+      observacoes_medicas: (formData.get('observacoes_medicas') as string) || null,
+      pode_sair_sozinho: formData.get('pode_sair_sozinho') === 'on',
     }
 
     const { error } = await supabase.from('alunos').update(dados).eq('id', id)
