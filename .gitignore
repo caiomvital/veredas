@@ -6,3 +6,7 @@ node_modules/
 *.tsbuildinfo
 next-env.d.ts
 log-tarefas.md
+
+.vercel
+.env*.local
+projeto-veredas/backend/supabase/supabase/

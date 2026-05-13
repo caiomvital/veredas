@@ -1,12 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { getEscolaConfig, salvarEscolaConfig } from '@/lib/actions/escola-config'
 import { toast } from 'sonner'
 import { Save, Building, Palette, Calendar, GraduationCap, Share2, FileText, Loader2 } from 'lucide-react'
+import { formatarCNPJ, validarCNPJ, limparCNPJ, buscarCNPJReceitaWS } from '@/lib/utils/cnpj'
+import { formatarCEP, limparCEP, buscarCEP } from '@/lib/utils/viacep'
 
 const NIVEIS_OPCOES = [
   { value: 'maternal1', label: 'Maternal I' },
@@ -42,9 +44,25 @@ export default function AdminConfiguracoes() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [activeTab, setActiveTab] = useState<TabId>('identidade')
 
+  // CNPJ state
+  const [cnpj, setCnpj] = useState('')
+  const [cnpjError, setCnpjError] = useState<string | null>(null)
+  const [cnpjLoading, setCnpjLoading] = useState(false)
+
+  // CEP state
+  const [cep, setCep] = useState('')
+  const [cepLoading, setCepLoading] = useState(false)
+  const [cepError, setCepError] = useState<string | null>(null)
+  const cepTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   useEffect(() => {
     getEscolaConfig().then((res) => {
-      if (res.data) setData(res.data)
+      if (res.data) {
+        setData(res.data)
+        setCnpj(formatarCNPJ((res.data?.cnpj as string) ?? ''))
+        const end = (res.data?.endereco as Record<string, unknown>) ?? {}
+        setCep(formatarCEP((end.cep as string) ?? ''))
+      }
       setIsLoading(false)
     })
   }, [])
@@ -53,7 +71,11 @@ export default function AdminConfiguracoes() {
     e.preventDefault()
     setSaving(true)
     setMessage(null)
+
     const form = new FormData(e.currentTarget)
+    form.set('cnpj', limparCNPJ(form.get('cnpj') as string))
+    form.set('endereco_cep', limparCEP(form.get('endereco_cep') as string))
+
     const res = await salvarEscolaConfig(form)
     if (res.error) {
       setMessage({ type: 'error', text: res.error })
@@ -61,11 +83,70 @@ export default function AdminConfiguracoes() {
     } else {
       setMessage({ type: 'success', text: 'Configurações salvas com sucesso!' })
       toast.success("Configurações salvas com sucesso")
-      // Recarregar dados
       const fresh = await getEscolaConfig()
       if (fresh.data) setData(fresh.data)
     }
     setSaving(false)
+  }
+
+  function handleCnpjChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setCnpj(formatarCNPJ(e.target.value.replace(/\D/g, '')))
+    setCnpjError(null)
+  }
+
+  async function handleCnpjBlur() {
+    const cleaned = limparCNPJ(cnpj)
+    if (cleaned.length > 0 && cleaned.length !== 14) {
+      setCnpjError('CNPJ inválido')
+      return
+    }
+    if (cleaned.length === 14 && !validarCNPJ(cnpj)) {
+      setCnpjError('CNPJ inválido')
+      return
+    }
+    setCnpjError(null)
+
+    if (cleaned.length === 14) {
+      setCnpjLoading(true)
+      const result = await buscarCNPJReceitaWS(cnpj)
+      if (result?.nome) {
+        const nomeInput = document.querySelector('input[name="nome"]') as HTMLInputElement
+        if (nomeInput && !nomeInput.value) {
+          nomeInput.value = result.nome
+        }
+      }
+      setCnpjLoading(false)
+    }
+  }
+
+  function handleCepChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const cleaned = e.target.value.replace(/\D/g, '')
+    const formatted = formatarCEP(cleaned)
+    setCep(formatted)
+    setCepError(null)
+
+    if (cepTimeoutRef.current) clearTimeout(cepTimeoutRef.current)
+
+    if (cleaned.length === 8) {
+      setCepLoading(true)
+      cepTimeoutRef.current = setTimeout(async () => {
+        const result = await buscarCEP(formatted)
+        if (result) {
+          const setVal = (name: string, val: string) => {
+            const el = document.querySelector(`input[name="${name}"]`) as HTMLInputElement
+            if (el) el.value = val
+          }
+          setVal('endereco_rua', result.logradouro)
+          setVal('endereco_bairro', result.bairro)
+          setVal('endereco_cidade', result.cidade)
+          setVal('endereco_uf', result.uf)
+          setCepError(null)
+        } else {
+          setCepError('CEP não encontrado')
+        }
+        setCepLoading(false)
+      }, 300)
+    }
   }
 
   function getNested(obj: Record<string, unknown> | null, path: string): unknown {
@@ -88,7 +169,6 @@ export default function AdminConfiguracoes() {
     <div>
       <h1 className="mb-8 text-2xl font-bold text-zab-verde">Configurações da Escola</h1>
 
-      {/* Tabs */}
       <div className="mb-6 flex flex-wrap gap-1 border-b border-stone-200">
         {TABS.map((tab) => (
           <button
@@ -117,7 +197,6 @@ export default function AdminConfiguracoes() {
       <form onSubmit={handleSubmit}>
         <input type="hidden" name="escola_id" value={data?.id as string} />
 
-        {/* Identidade Visual */}
         {activeTab === 'identidade' && (
           <Card>
             <CardContent className="p-6 space-y-5">
@@ -163,7 +242,6 @@ export default function AdminConfiguracoes() {
           </Card>
         )}
 
-        {/* Dados Institucionais */}
         {activeTab === 'institucional' && (
           <Card>
             <CardContent className="p-6 space-y-5">
@@ -175,7 +253,14 @@ export default function AdminConfiguracoes() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-1 block text-sm font-medium text-zab-texto">CNPJ</label>
-                  <Input name="cnpj" defaultValue={data?.cnpj as string} placeholder="00.000.000/0001-00" />
+                  <Input name="cnpj"
+                    value={cnpj}
+                    onChange={handleCnpjChange}
+                    onBlur={handleCnpjBlur}
+                    error={cnpjError ?? undefined}
+                    placeholder="00.000.000/0001-00"
+                  />
+                  {cnpjLoading && <span className="text-xs text-gray-400">Consultando ReceitaWS...</span>}
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-zab-texto">Telefone</label>
@@ -191,7 +276,13 @@ export default function AdminConfiguracoes() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-1 block text-sm font-medium text-zab-texto">CEP</label>
-                  <Input name="endereco_cep" defaultValue={(getNested(data, 'endereco.cep') as string) ?? ''} placeholder="53030-000" />
+                  <Input name="endereco_cep"
+                    value={cep}
+                    onChange={handleCepChange}
+                    error={cepError ?? undefined}
+                    placeholder="53030-000"
+                  />
+                  {cepLoading && <span className="text-xs text-gray-400">Buscando CEP...</span>}
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-zab-texto">Rua</label>
@@ -229,7 +320,6 @@ export default function AdminConfiguracoes() {
           </Card>
         )}
 
-        {/* Ano Letivo */}
         {activeTab === 'ano' && (
           <Card>
             <CardContent className="p-6 space-y-5">
@@ -246,7 +336,6 @@ export default function AdminConfiguracoes() {
           </Card>
         )}
 
-        {/* Níveis de Ensino */}
         {activeTab === 'niveis' && (
           <Card>
             <CardContent className="p-6 space-y-5">
@@ -271,7 +360,6 @@ export default function AdminConfiguracoes() {
           </Card>
         )}
 
-        {/* Redes Sociais */}
         {activeTab === 'sociais' && (
           <Card>
             <CardContent className="p-6 space-y-5">
@@ -305,7 +393,6 @@ export default function AdminConfiguracoes() {
           </Card>
         )}
 
-        {/* Textos */}
         {activeTab === 'textos' && (
           <Card>
             <CardContent className="p-6 space-y-5">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { criarAluno } from '@/lib/actions/alunos'
@@ -8,13 +8,26 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
+import { formatarCPF, validarCPF, limparCPF } from '@/lib/utils/cpf'
+import { formatarCEP, limparCEP, buscarCEP } from '@/lib/utils/viacep'
 
 export default function NovoAlunoPage() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [cpf, setCpf] = useState('')
+  const [cpfError, setCpfError] = useState<string | null>(null)
+  const [cep, setCep] = useState('')
+  const [cepLoading, setCepLoading] = useState(false)
+  const [cepError, setCepError] = useState<string | null>(null)
+  const cepTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   async function handleSubmit(formData: FormData) {
+    const rawCpf = formData.get('cpf') as string
+    const rawCep = formData.get('cep') as string
+    formData.set('cpf', limparCPF(rawCpf))
+    formData.set('cep', limparCEP(rawCep))
+
     setIsLoading(true)
     setError(null)
     const result = await criarAluno(formData)
@@ -25,6 +38,53 @@ export default function NovoAlunoPage() {
     } else {
       toast.success("Aluno cadastrado com sucesso")
       router.push('/admin/alunos')
+    }
+  }
+
+  function handleCpfChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const cleaned = e.target.value.replace(/\D/g, '')
+    setCpf(formatarCPF(cleaned))
+    setCpfError(null)
+  }
+
+  function handleCpfBlur() {
+    const cleaned = limparCPF(cpf)
+    if (cleaned.length > 0 && cleaned.length !== 11) {
+      setCpfError('CPF inválido')
+    } else if (cleaned.length === 11 && !validarCPF(cpf)) {
+      setCpfError('CPF inválido')
+    } else {
+      setCpfError(null)
+    }
+  }
+
+  function handleCepChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const cleaned = e.target.value.replace(/\D/g, '')
+    const formatted = formatarCEP(cleaned)
+    setCep(formatted)
+    setCepError(null)
+
+    if (cepTimeoutRef.current) clearTimeout(cepTimeoutRef.current)
+
+    if (cleaned.length === 8) {
+      setCepLoading(true)
+      cepTimeoutRef.current = setTimeout(async () => {
+        const result = await buscarCEP(formatted)
+        if (result) {
+          const setVal = (id: string, val: string) => {
+            const el = document.getElementById(id) as HTMLInputElement
+            if (el) el.value = val
+          }
+          setVal('rua', result.logradouro)
+          setVal('bairro', result.bairro)
+          setVal('cidade', result.cidade)
+          setVal('uf', result.uf)
+          setCepError(null)
+        } else {
+          setCepError('CEP não encontrado')
+        }
+        setCepLoading(false)
+      }, 300)
     }
   }
 
@@ -40,17 +100,20 @@ export default function NovoAlunoPage() {
       <Card>
         <CardContent className="p-6">
           <form action={handleSubmit} className="space-y-4">
-            {/* Matrícula e Nome */}
             <Input id="matricula" name="matricula" label="Nº Matrícula" required
               placeholder={`${anoAtual}0001`} />
 
             <Input id="nome_completo" name="nome_completo" label="Nome completo" required
               placeholder="Nome completo do aluno" />
 
-            {/* Documentos */}
             <div className="grid gap-4 sm:grid-cols-2">
               <Input id="data_nascimento" name="data_nascimento" label="Data de nascimento" required type="date" />
-              <Input id="cpf" name="cpf" label="CPF" placeholder="000.000.000-00" />
+              <Input id="cpf" name="cpf" label="CPF" placeholder="000.000.000-00"
+                value={cpf}
+                onChange={handleCpfChange}
+                onBlur={handleCpfBlur}
+                error={cpfError ?? undefined}
+              />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -60,17 +123,20 @@ export default function NovoAlunoPage() {
 
             <Input id="naturalidade" name="naturalidade" label="Naturalidade" placeholder="Recife - PE" />
 
-            {/* Filiação */}
             <div className="grid gap-4 sm:grid-cols-2">
               <Input id="nome_mae" name="nome_mae" label="Nome da mãe" required placeholder="Nome completo da mãe" />
               <Input id="nome_pai" name="nome_pai" label="Nome do pai" placeholder="Nome completo do pai (opcional)" />
             </div>
 
-            {/* Endereço */}
             <fieldset className="rounded border border-border p-4">
               <legend className="text-sm font-medium text-[var(--color-primary-700)]">Endereço</legend>
               <div className="mt-2 grid gap-4 sm:grid-cols-2">
-                <Input id="cep" name="cep" label="CEP" placeholder="00000-000" />
+                <Input id="cep" name="cep" label="CEP" placeholder="00000-000"
+                  value={cep}
+                  onChange={handleCepChange}
+                  error={cepError ?? undefined}
+                />
+                {cepLoading && <span className="text-xs text-gray-400 self-end mb-1">Buscando CEP...</span>}
                 <Input id="rua" name="rua" label="Rua" />
               </div>
               <div className="mt-4 grid gap-4 sm:grid-cols-3">
@@ -84,7 +150,6 @@ export default function NovoAlunoPage() {
               </div>
             </fieldset>
 
-            {/* Contato do responsável */}
             <fieldset className="rounded border border-border p-4">
               <legend className="text-sm font-medium text-[var(--color-primary-700)]">Contato do Responsável</legend>
               <div className="mt-2 grid gap-4 sm:grid-cols-2">
@@ -93,7 +158,6 @@ export default function NovoAlunoPage() {
               </div>
             </fieldset>
 
-            {/* Informações de Saúde */}
             <fieldset className="rounded border border-border p-4">
               <legend className="text-sm font-medium text-[var(--color-primary-700)]">Informações de Saúde</legend>
               <div className="mt-2 grid gap-4 sm:grid-cols-2">
@@ -117,7 +181,6 @@ export default function NovoAlunoPage() {
               </div>
             </fieldset>
 
-            {/* LGPD */}
             <fieldset className="rounded border border-border p-4">
               <legend className="text-sm font-medium text-[var(--color-primary-700)]">LGPD — Autorizações</legend>
               <div className="mt-2 space-y-2">

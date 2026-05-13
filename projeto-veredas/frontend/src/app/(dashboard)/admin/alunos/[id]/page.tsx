@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
+import { formatarCPF, validarCPF, limparCPF } from '@/lib/utils/cpf'
 import type { Aluno } from '@/types/entities'
 
 export default function EditarAlunoPage() {
@@ -20,6 +21,8 @@ export default function EditarAlunoPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [cpf, setCpf] = useState('')
+  const [cpfError, setCpfError] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -28,6 +31,7 @@ export default function EditarAlunoPage() {
         setError(result.error)
       } else if (result.data) {
         setAluno(result.data)
+        setCpf(formatarCPF(result.data.cpf ?? ''))
       }
       setIsLoading(false)
     }
@@ -35,6 +39,7 @@ export default function EditarAlunoPage() {
   }, [id])
 
   async function handleSave(formData: FormData) {
+    formData.set('cpf', limparCPF(formData.get('cpf') as string))
     setIsSaving(true)
     setError(null)
     const result = await atualizarAluno(id, formData)
@@ -90,7 +95,17 @@ export default function EditarAlunoPage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <Input id="data_nascimento" name="data_nascimento" label="Data de nascimento" required type="date" defaultValue={aluno.data_nascimento} />
-              <Input id="cpf" name="cpf" label="CPF" defaultValue={aluno.cpf ?? ''} />
+              <Input id="cpf" name="cpf" label="CPF"
+                value={cpf}
+                onChange={(e) => setCpf(formatarCPF(e.target.value.replace(/\D/g, '')))}
+                onBlur={() => {
+                  const cleaned = limparCPF(cpf)
+                  if (cleaned.length > 0 && cleaned.length !== 11) setCpfError('CPF inválido')
+                  else if (cleaned.length === 11 && !validarCPF(cpf)) setCpfError('CPF inválido')
+                  else setCpfError(null)
+                }}
+                error={cpfError ?? undefined}
+              />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">

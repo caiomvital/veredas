@@ -7,15 +7,19 @@ import { criarFuncionario } from '@/lib/actions/funcionarios'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
+import { formatarCPF, validarCPF, limparCPF } from '@/lib/utils/cpf'
 
 export default function NovoFuncionarioPage() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [cpf, setCpf] = useState('')
+  const [cpfError, setCpfError] = useState<string | null>(null)
 
   async function handleSubmit(formData: FormData) {
+    formData.set('cpf', limparCPF(formData.get('cpf') as string))
     setIsLoading(true)
     setError(null)
     const result = await criarFuncionario(formData)
@@ -48,7 +52,16 @@ export default function NovoFuncionarioPage() {
             />
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input id="cpf" name="cpf" label="CPF" required placeholder="000.000.000-00" />
+              <Input id="cpf" name="cpf" label="CPF" required placeholder="000.000.000-00"
+                value={cpf}
+                onChange={(e) => setCpf(formatarCPF(e.target.value.replace(/\D/g, '')))}
+                onBlur={() => {
+                  const cleaned = limparCPF(cpf)
+                  if (!cleaned || cleaned.length !== 11 || !validarCPF(cpf)) setCpfError('CPF inválido')
+                  else setCpfError(null)
+                }}
+                error={cpfError ?? undefined}
+              />
               <Input id="email" name="email" label="E-mail" type="email" required placeholder="funcionario@email.com" />
             </div>
 
