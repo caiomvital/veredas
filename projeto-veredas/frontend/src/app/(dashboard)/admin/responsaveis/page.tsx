@@ -7,6 +7,7 @@ import { DataTable, type Column } from '@/components/ui/data-table'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Plus, Eye } from 'lucide-react'
+import { WhatsAppButton } from '@/components/ui/whatsapp-button'
 import type { Responsavel } from '@/types/entities'
 
 const columns: Column<Responsavel>[] = [
@@ -15,6 +16,11 @@ const columns: Column<Responsavel>[] = [
   { key: 'email', label: 'E-mail', sortable: true },
   { key: 'telefone', label: 'Telefone' },
   { key: 'profissao', label: 'Profissão' },
+  {
+    key: 'whatsapp', label: '',
+    sortable: false,
+    render: (row) => row.telefone ? <WhatsAppButton telefone={row.telefone} /> : null,
+  },
 ]
 
 export default function ResponsaveisPage() {

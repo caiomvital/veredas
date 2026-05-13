@@ -1,34 +1,30 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { criarTurma } from '@/lib/actions/turmas'
+import { listarSeries } from '@/lib/actions/series-escolares'
+import type { SerieEscolar } from '@/lib/actions/series-escolares'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
 
-const SERIES = [
-  { value: '1º EF', label: '1º Ano Ensino Fundamental' },
-  { value: '2º EF', label: '2º Ano Ensino Fundamental' },
-  { value: '3º EF', label: '3º Ano Ensino Fundamental' },
-  { value: '4º EF', label: '4º Ano Ensino Fundamental' },
-  { value: '5º EF', label: '5º Ano Ensino Fundamental' },
-  { value: '6º EF', label: '6º Ano Ensino Fundamental' },
-  { value: '7º EF', label: '7º Ano Ensino Fundamental' },
-  { value: '8º EF', label: '8º Ano Ensino Fundamental' },
-  { value: '9º EF', label: '9º Ano Ensino Fundamental' },
-  { value: '1ª EM', label: '1ª Série Ensino Médio' },
-  { value: '2ª EM', label: '2ª Série Ensino Médio' },
-  { value: '3ª EM', label: '3ª Série Ensino Médio' },
-]
-
 export default function NovaTurmaPage() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [series, setSeries] = useState<SerieEscolar[]>([])
+  const [loadingSeries, setLoadingSeries] = useState(true)
+
+  useEffect(() => {
+    listarSeries().then((res) => {
+      if (res.data) setSeries(res.data.filter((s) => s.ativo))
+      setLoadingSeries(false)
+    })
+  }, [])
 
   async function handleSubmit(formData: FormData) {
     setIsLoading(true)
@@ -58,7 +54,8 @@ export default function NovaTurmaPage() {
               placeholder="Ex: 6A, 1EM-B" />
 
             <Select id="serie" name="serie" label="Série" required
-              options={SERIES} placeholder="Selecione a série" />
+              options={series.map((s) => ({ value: s.nome, label: s.nome }))}
+              placeholder={loadingSeries ? 'Carregando...' : 'Selecione a série'} />
 
             <Select id="turno" name="turno" label="Turno" required
               options={[

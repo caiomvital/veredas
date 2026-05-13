@@ -11,7 +11,7 @@ export interface AlunoComTurma extends Aluno {
   }[]
   aluno_responsavel: {
     grau_parentesco: string
-    responsaveis: { nome_completo: string } | null
+    responsaveis: { nome_completo: string; telefone: string | null } | null
   }[]
 }
 
@@ -23,7 +23,7 @@ export async function listarAlunos(params?: { status?: string; busca?: string })
       .select(`
         *,
         matriculas!left(turmas!left(codigo, serie)),
-        aluno_responsavel!left(grau_parentesco, responsaveis!left(nome_completo))
+        aluno_responsavel!left(grau_parentesco, responsaveis!left(nome_completo, telefone))
       `)
       .order('nome_completo')
 

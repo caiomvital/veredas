@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { listarInadimplentesDetalhado, type InadimplenteInfo } from '@/lib/actions/inadimplencia'
 import { Card, CardContent } from '@/components/ui/card'
+import { WhatsAppButton } from '@/components/ui/whatsapp-button'
 
 export default function InadimplenciaPage() {
   const [inadimplentes, setInadimplentes] = useState<InadimplenteInfo[]>([])
@@ -139,14 +140,11 @@ export default function InadimplenciaPage() {
                       {entry.lancamentos.length} lançamento{entry.lancamentos.length !== 1 ? 's' : ''} · Total: R$ {entry.total.toFixed(2)}
                     </p>
                   </div>
-                  <a
-                    href={`https://wa.me/${entry.telefone.replace(/\D/g, '')}?text=${gerarMsgWhatsApp(entry.alunoNome, entry.total, entry.lancamentos)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-600 transition-colors"
-                  >
-                    Avisar WhatsApp
-                  </a>
+                  <WhatsAppButton
+                    telefone={entry.telefone}
+                    mensagem={gerarMsgWhatsApp(entry.alunoNome, entry.total, entry.lancamentos)}
+                    variant="button"
+                  />
                 </CardContent>
               </Card>
             ))}

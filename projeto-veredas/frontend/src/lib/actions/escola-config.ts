@@ -99,10 +99,90 @@ export async function salvarEscolaConfig(formData: FormData): Promise<ActionResu
     const rodape = formData.get('rodape') as string
     if (mensagem) textos.mensagem_boasvindas = mensagem
     if (rodape) textos.rodape = rodape
+    // Documentos
+    const tdMatricula = formData.get('template_declaracao_matricula') as string
+    const tdFrequencia = formData.get('template_declaracao_frequencia') as string
+    const clausulas = formData.get('clausulas_contrato') as string
+    const cidadeRodape = formData.get('cidade_rodape') as string
+    const ufRodape = formData.get('uf_rodape') as string
+    const assinanteNome = formData.get('assinante_nome') as string
+    const assinanteCargo = formData.get('assinante_cargo') as string
+    if (tdMatricula) textos.template_declaracao_matricula = tdMatricula
+    if (tdFrequencia) textos.template_declaracao_frequencia = tdFrequencia
+    if (clausulas) textos.clausulas_contrato = clausulas
+    if (cidadeRodape) textos.cidade_rodape = cidadeRodape
+    if (ufRodape) textos.uf_rodape = ufRodape
+    if (assinanteNome) textos.assinante_nome = assinanteNome
+    if (assinanteCargo) textos.assinante_cargo = assinanteCargo
     if (Object.keys(textos).length > 0) {
       const { data: currentTextos } = await supabase.from('escolas').select('textos').eq('id', escolaId).single()
       const currentTextosData = (currentTextos?.textos as Record<string, unknown>) ?? {}
       dados.textos = { ...currentTextosData, ...textos }
+    }
+
+    // Config acadêmica (JSONB)
+    const configAcademica: Record<string, unknown> = {}
+    const sistemaAvaliacao = formData.get('sistema_avaliacao') as string
+    const mediaMinima = formData.get('media_minima') as string
+    const numPeriodos = formData.get('num_periodos') as string
+    const nomesPeriodos = formData.get('nomes_periodos') as string
+    const temRecParalela = formData.get('tem_recuperacao_paralela') as string
+    const temRecFinal = formData.get('tem_recuperacao_final') as string
+    const pesoProva = formData.get('peso_prova') as string
+    const pesoTrabalho = formData.get('peso_trabalho') as string
+    if (sistemaAvaliacao) configAcademica.sistema_avaliacao = sistemaAvaliacao
+    if (mediaMinima) configAcademica.media_minima = parseFloat(mediaMinima)
+    if (numPeriodos) configAcademica.num_periodos = parseInt(numPeriodos)
+    if (nomesPeriodos) configAcademica.nomes_periodos = nomesPeriodos
+    if (temRecParalela) configAcademica.tem_recuperacao_paralela = temRecParalela === 'sim'
+    if (temRecFinal) configAcademica.tem_recuperacao_final = temRecFinal === 'sim'
+    if (pesoProva) configAcademica.peso_prova = parseFloat(pesoProva)
+    if (pesoTrabalho) configAcademica.peso_trabalho = parseFloat(pesoTrabalho)
+    if (Object.keys(configAcademica).length > 0) {
+      const { data: currentCA } = await supabase.from('escolas').select('config_academica').eq('id', escolaId).single()
+      const currentCAData = (currentCA?.config_academica as Record<string, unknown>) ?? {}
+      dados.config_academica = { ...currentCAData, ...configAcademica }
+    }
+
+    // Config financeira (JSONB)
+    const configFinanceira: Record<string, unknown> = {}
+    const diaVenc = formData.get('dia_vencimento') as string
+    const percMulta = formData.get('percentual_multa') as string
+    const jurosDia = formData.get('juros_ao_dia') as string
+    const cobraTaxa = formData.get('cobra_taxa_matricula') as string
+    const valorTaxa = formData.get('valor_taxa_matricula') as string
+    const descPont = formData.get('desconto_pontualidade') as string
+    const percDesc = formData.get('percentual_desconto_pontualidade') as string
+    if (diaVenc) configFinanceira.dia_vencimento = parseInt(diaVenc)
+    if (percMulta) configFinanceira.percentual_multa = parseFloat(percMulta)
+    if (jurosDia) configFinanceira.juros_ao_dia = parseFloat(jurosDia)
+    if (cobraTaxa) configFinanceira.cobra_taxa_matricula = cobraTaxa === 'sim'
+    if (valorTaxa) configFinanceira.valor_taxa_matricula = parseFloat(valorTaxa)
+    if (descPont) configFinanceira.desconto_pontualidade = descPont === 'sim'
+    if (percDesc) configFinanceira.percentual_desconto_pontualidade = parseFloat(percDesc)
+    if (Object.keys(configFinanceira).length > 0) {
+      const { data: currentCF } = await supabase.from('escolas').select('config_financeira').eq('id', escolaId).single()
+      const currentCFData = (currentCF?.config_financeira as Record<string, unknown>) ?? {}
+      dados.config_financeira = { ...currentCFData, ...configFinanceira }
+    }
+
+    // Config portal (JSONB)
+    const configPortal: Record<string, unknown> = {}
+    const portalCampos = [
+      'pode_ver_notas', 'pode_ver_frequencia', 'pode_ver_financeiro',
+      'pode_ver_agenda', 'pode_ver_comunicados', 'pode_ver_calendario',
+      'pode_justificar_falta', 'pode_solicitar_documentos', 'pode_responder_agenda',
+    ]
+    for (const campo of portalCampos) {
+      configPortal[campo] = formData.get(campo) === 'on'
+    }
+    const podeAtualizar = formData.get('pode_atualizar_dados') as string
+    if (podeAtualizar === 'sim') configPortal.pode_atualizar_dados = true
+    if (podeAtualizar === 'nao') configPortal.pode_atualizar_dados = false
+    if (Object.keys(configPortal).length > 0) {
+      const { data: currentCP } = await supabase.from('escolas').select('config_portal').eq('id', escolaId).single()
+      const currentCPData = (currentCP?.config_portal as Record<string, unknown>) ?? {}
+      dados.config_portal = { ...currentCPData, ...configPortal }
     }
 
     const { error } = await supabase.from('escolas').update(dados).eq('id', escolaId)

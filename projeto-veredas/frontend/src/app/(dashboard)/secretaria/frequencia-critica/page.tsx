@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { listarFrequenciaCritica, type AlunoFrequenciaCritica } from '@/lib/actions/frequencia-critica'
 import { Card, CardContent } from '@/components/ui/card'
+import { WhatsAppButton } from '@/components/ui/whatsapp-button'
 
 export default function FrequenciaCriticaPage() {
   const [alunos, setAlunos] = useState<AlunoFrequenciaCritica[]>([])
@@ -27,8 +28,7 @@ export default function FrequenciaCriticaPage() {
   const atencao = alunos.filter((a) => a.nivel === 'atencao').length
 
   function gerarMensagemWhatsApp(a: AlunoFrequenciaCritica): string {
-    const msg = `Olá! O aluno ${a.alunoNome} da turma ${a.turmaCodigo} está com ${a.frequenciaPct}% de frequência na disciplina ${a.disciplinaNome}. Por favor, regularize a situação.`
-    return encodeURIComponent(msg)
+    return `Olá! O aluno ${a.alunoNome} da turma ${a.turmaCodigo} está com ${a.frequenciaPct}% de frequência na disciplina ${a.disciplinaNome}. Por favor, regularize a situação.`
   }
 
   return (
@@ -114,14 +114,15 @@ export default function FrequenciaCriticaPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <a
-                      href={`https://wa.me/?text=${gerarMensagemWhatsApp(a)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-green-600 hover:text-green-700 font-medium"
-                    >
-                      Avisar
-                    </a>
+                    {a.responsavelTelefone ? (
+                      <WhatsAppButton
+                        telefone={a.responsavelTelefone}
+                        mensagem={gerarMensagemWhatsApp(a)}
+                        variant="icon"
+                      />
+                    ) : (
+                      <span className="text-xs text-gray-400">—</span>
+                    )}
                   </td>
                 </tr>
               ))}

@@ -6,9 +6,11 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { getEscolaConfig, salvarEscolaConfig } from '@/lib/actions/escola-config'
 import { toast } from 'sonner'
-import { Save, Building, Palette, Calendar, GraduationCap, Share2, FileText, Loader2 } from 'lucide-react'
+import { Save, Building, Palette, Calendar, GraduationCap, Share2, FileText, Loader2, BookOpen, DollarSign, ShieldCheck, Smartphone, Plus, ArrowUp, ArrowDown, Trash2 } from 'lucide-react'
 import { formatarCNPJ, validarCNPJ, limparCNPJ, buscarCNPJReceitaWS } from '@/lib/utils/cnpj'
 import { formatarCEP, limparCEP, buscarCEP } from '@/lib/utils/viacep'
+import { listarSeries, criarSerie, excluirSerie, reordenarSerie } from '@/lib/actions/series-escolares'
+import type { SerieEscolar } from '@/lib/actions/series-escolares'
 
 const NIVEIS_OPCOES = [
   { value: 'maternal1', label: 'Maternal I' },
@@ -26,13 +28,18 @@ const NIVEIS_OPCOES = [
   { value: '9ano', label: '9º Ano' },
 ]
 
-type TabId = 'identidade' | 'institucional' | 'ano' | 'niveis' | 'sociais' | 'textos'
+type TabId = 'identidade' | 'institucional' | 'ano' | 'niveis' | 'estrutura' | 'sociais' | 'textos' | 'pedagogico' | 'financeiro' | 'documentos' | 'portal'
 
 const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'identidade', label: 'Identidade Visual', icon: <Palette size={16} /> },
   { id: 'institucional', label: 'Dados Institucionais', icon: <Building size={16} /> },
+  { id: 'pedagogico', label: 'Pedagógico', icon: <BookOpen size={16} /> },
+  { id: 'financeiro', label: 'Financeiro', icon: <DollarSign size={16} /> },
   { id: 'ano', label: 'Ano Letivo', icon: <Calendar size={16} /> },
   { id: 'niveis', label: 'Níveis de Ensino', icon: <GraduationCap size={16} /> },
+  { id: 'estrutura', label: 'Estrutura Escolar', icon: <ShieldCheck size={16} /> },
+  { id: 'documentos', label: 'Documentos', icon: <FileText size={16} /> },
+  { id: 'portal', label: 'Portal', icon: <Smartphone size={16} /> },
   { id: 'sociais', label: 'Redes Sociais', icon: <Share2 size={16} /> },
   { id: 'textos', label: 'Textos', icon: <FileText size={16} /> },
 ]
@@ -55,6 +62,12 @@ export default function AdminConfiguracoes() {
   const [cepError, setCepError] = useState<string | null>(null)
   const cepTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Estrutura Escolar state
+  const [series, setSeries] = useState<SerieEscolar[]>([])
+  const [novaSerieNome, setNovaSerieNome] = useState('')
+  const [novaSerieNivel, setNovaSerieNivel] = useState('infantil')
+  const [addingSerie, setAddingSerie] = useState(false)
+
   useEffect(() => {
     getEscolaConfig().then((res) => {
       if (res.data) {
@@ -65,6 +78,7 @@ export default function AdminConfiguracoes() {
       }
       setIsLoading(false)
     })
+    listarSeries().then((res) => { if (res.data) setSeries(res.data) })
   }, [])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -355,6 +369,395 @@ export default function AdminConfiguracoes() {
                     </label>
                   )
                 })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 'estrutura' && (
+          <Card>
+            <CardContent className="p-6 space-y-5">
+              <div className="flex items-center gap-2 mb-1">
+                <ShieldCheck size={18} className="text-zab-verde" />
+                <h2 className="text-base font-semibold text-zab-texto-escuro">Estrutura Escolar</h2>
+              </div>
+              <p className="text-sm text-zab-texto-claro">
+                Gerencie as séries disponíveis na escola. As séries ativas aparecem nos formulários de turma.
+              </p>
+
+              {(['infantil', 'fund1', 'fund2', 'medio'] as const).map((nivel) => {
+                const seriesNivel = series.filter((s) => s.nivel === nivel && s.ativo)
+                if (seriesNivel.length === 0) return null
+                return (
+                  <div key={nivel}>
+                    <h3 className="text-sm font-semibold text-zab-texto mb-2">{({ infantil: 'Educação Infantil', fund1: 'Ensino Fundamental I', fund2: 'Ensino Fundamental II', medio: 'Ensino Médio' } as Record<string, string>)[nivel]}</h3>
+                    <div className="space-y-1">
+                      {seriesNivel.map((s, idx) => (
+                        <div key={s.id} className="flex items-center justify-between rounded-lg border border-stone-200 bg-white px-4 py-2.5 text-sm">
+                          <span className="text-zab-texto">{s.nome}</span>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                await reordenarSerie(s.id, 'cima')
+                                const res = await listarSeries()
+                                if (res.data) setSeries(res.data)
+                              }}
+                              disabled={idx === 0}
+                              className="rounded p-1 text-zab-texto-claro hover:bg-stone-100 disabled:opacity-30"
+                              title="Subir"
+                            >
+                              <ArrowUp size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                await reordenarSerie(s.id, 'baixo')
+                                const res = await listarSeries()
+                                if (res.data) setSeries(res.data)
+                              }}
+                              disabled={idx === seriesNivel.length - 1}
+                              className="rounded p-1 text-zab-texto-claro hover:bg-stone-100 disabled:opacity-30"
+                              title="Descer"
+                            >
+                              <ArrowDown size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (!confirm(`Desativar "${s.nome}"?`)) return
+                                await excluirSerie(s.id)
+                                const res = await listarSeries()
+                                if (res.data) setSeries(res.data)
+                              }}
+                              className="rounded p-1 text-red-400 hover:bg-red-50 hover:text-red-600"
+                              title="Desativar"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+
+              <div className="border-t border-stone-200 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setAddingSerie(!addingSerie)}
+                  className="flex items-center gap-1 text-sm text-zab-verde hover:underline"
+                >
+                  <Plus size={16} /> {addingSerie ? 'Cancelar' : 'Adicionar série'}
+                </button>
+
+                {addingSerie && (
+                  <div className="mt-3 flex flex-wrap items-end gap-3">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-zab-texto">Nome</label>
+                      <input
+                        value={novaSerieNome}
+                        onChange={(e) => setNovaSerieNome(e.target.value)}
+                        className="rounded-lg border border-stone-300 px-3 py-2 text-sm"
+                        placeholder="Ex: 4ª Série"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-zab-texto">Nível</label>
+                      <select
+                        value={novaSerieNivel}
+                        onChange={(e) => setNovaSerieNivel(e.target.value)}
+                        className="rounded-lg border border-stone-300 px-3 py-2 text-sm"
+                      >
+                        <option value="infantil">Educação Infantil</option>
+                        <option value="fund1">Ensino Fundamental I</option>
+                        <option value="fund2">Ensino Fundamental II</option>
+                        <option value="medio">Ensino Médio</option>
+                      </select>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={!novaSerieNome.trim()}
+                      onClick={async () => {
+                        const fd = new FormData()
+                        fd.set('nome', novaSerieNome.trim())
+                        fd.set('nivel', novaSerieNivel)
+                        fd.set('ordem', String(series.length + 1))
+                        const res = await criarSerie(fd)
+                        if (res.error) { toast.error(res.error); return }
+                        setNovaSerieNome('')
+                        setAddingSerie(false)
+                        const fresh = await listarSeries()
+                        if (fresh.data) setSeries(fresh.data)
+                        toast.success('Série adicionada')
+                      }}
+                      className="rounded-lg bg-zab-verde px-4 py-2 text-sm text-white hover:bg-zab-verde-escuro disabled:opacity-50"
+                    >
+                      Adicionar
+                    </button>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 'pedagogico' && (
+          <Card>
+            <CardContent className="p-6 space-y-5">
+              <div className="flex items-center gap-2 mb-1">
+                <BookOpen size={18} className="text-zab-verde" />
+                <h2 className="text-base font-semibold text-zab-texto-escuro">Configurações Pedagógicas</h2>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">Sistema de Avaliação</label>
+                  <select name="sistema_avaliacao" defaultValue={(getNested(data, 'config_academica.sistema_avaliacao') as string) ?? 'numerico'}
+                    className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm">
+                    <option value="numerico">Numérico (0–10)</option>
+                    <option value="conceitual">Conceitual (A/B/C/D)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">Média Mínima para Aprovação</label>
+                  <Input name="media_minima" type="number" step="0.1" min="0" max="10"
+                    defaultValue={(getNested(data, 'config_academica.media_minima') as number) ?? 7.0} />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">Períodos Letivos</label>
+                  <select name="num_periodos" defaultValue={(getNested(data, 'config_academica.num_periodos') as number) ?? 4}
+                    className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm">
+                    <option value="4">Bimestral (4 períodos)</option>
+                    <option value="3">Trimestral (3 períodos)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">Nome dos Períodos</label>
+                  <Input name="nomes_periodos" placeholder="Ex: 1º Bimestre, 2º Bimestre..."
+                    defaultValue={(getNested(data, 'config_academica.nomes_periodos') as string) ?? ''} />
+                  <p className="mt-1 text-xs text-zab-texto-claro">Separados por vírgula, na ordem</p>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">Tem Recuperação Paralela?</label>
+                  <select name="tem_recuperacao_paralela" defaultValue={(getNested(data, 'config_academica.tem_recuperacao_paralela') as boolean) ? 'sim' : 'nao'}
+                    className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm">
+                    <option value="sim">Sim</option>
+                    <option value="nao">Não</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">Tem Recuperação Final?</label>
+                  <select name="tem_recuperacao_final" defaultValue={(getNested(data, 'config_academica.tem_recuperacao_final') as boolean) ? 'sim' : 'nao'}
+                    className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm">
+                    <option value="sim">Sim</option>
+                    <option value="nao">Não</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">Peso da Prova (%)</label>
+                  <Input name="peso_prova" type="number" min="0" max="100"
+                    defaultValue={(getNested(data, 'config_academica.peso_prova') as number) ?? 60} />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">Peso do Trabalho (%)</label>
+                  <Input name="peso_trabalho" type="number" min="0" max="100"
+                    defaultValue={(getNested(data, 'config_academica.peso_trabalho') as number) ?? 40} />
+                </div>
+              </div>
+              <p className="text-xs text-zab-texto-claro">Os pesos devem somar 100%. Usado no cálculo da média.</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 'financeiro' && (
+          <Card>
+            <CardContent className="p-6 space-y-5">
+              <div className="flex items-center gap-2 mb-1">
+                <DollarSign size={18} className="text-zab-verde" />
+                <h2 className="text-base font-semibold text-zab-texto-escuro">Configurações Financeiras</h2>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">Dia de Vencimento Padrão</label>
+                  <Input name="dia_vencimento" type="number" min="1" max="28"
+                    defaultValue={(getNested(data, 'config_financeira.dia_vencimento') as number) ?? 10} />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">Multa por Atraso (%)</label>
+                  <Input name="percentual_multa" type="number" step="0.1" min="0" max="100"
+                    defaultValue={(getNested(data, 'config_financeira.percentual_multa') as number) ?? 2.0} />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">Juros ao Dia (%)</label>
+                  <Input name="juros_ao_dia" type="number" step="0.001" min="0"
+                    defaultValue={(getNested(data, 'config_financeira.juros_ao_dia') as number) ?? 0.033} />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">Cobra Taxa de Matrícula?</label>
+                  <select name="cobra_taxa_matricula" defaultValue={(getNested(data, 'config_financeira.cobra_taxa_matricula') as boolean) ? 'sim' : 'nao'}
+                    className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm">
+                    <option value="nao">Não</option>
+                    <option value="sim">Sim</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">Valor da Taxa de Matrícula (R$)</label>
+                  <Input name="valor_taxa_matricula" type="number" step="0.01" min="0"
+                    defaultValue={(getNested(data, 'config_financeira.valor_taxa_matricula') as number) ?? 0} />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">Desconto por Pontualidade?</label>
+                  <select name="desconto_pontualidade" defaultValue={(getNested(data, 'config_financeira.desconto_pontualidade') as boolean) ? 'sim' : 'nao'}
+                    className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm">
+                    <option value="nao">Não</option>
+                    <option value="sim">Sim</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">Percentual de Desconto (%)</label>
+                  <Input name="percentual_desconto_pontualidade" type="number" step="0.1" min="0" max="100"
+                    defaultValue={(getNested(data, 'config_financeira.percentual_desconto_pontualidade') as number) ?? 0} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 'documentos' && (
+          <Card>
+            <CardContent className="p-6 space-y-5">
+              <div className="flex items-center gap-2 mb-1">
+                <FileText size={18} className="text-zab-verde" />
+                <h2 className="text-base font-semibold text-zab-texto-escuro">Configurações de Documentos</h2>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">Nome de quem assina</label>
+                  <Input name="assinante_nome" placeholder="Nome do diretor(a) ou secretário(a)"
+                    defaultValue={(getNested(data, 'textos.assinante_nome') as string) ?? ''} />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">Cargo de quem assina</label>
+                  <Input name="assinante_cargo" placeholder="Ex: Diretor(a) Pedagógico(a)"
+                    defaultValue={(getNested(data, 'textos.assinante_cargo') as string) ?? ''} />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">Cidade (rodapé)</label>
+                  <Input name="cidade_rodape" placeholder="Recife"
+                    defaultValue={(getNested(data, 'textos.cidade_rodape') as string) ?? ''} />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-zab-texto">UF (rodapé)</label>
+                  <Input name="uf_rodape" placeholder="PE" maxLength={2}
+                    defaultValue={(getNested(data, 'textos.uf_rodape') as string) ?? ''} />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-zab-texto">Texto Padrão — Declaração de Matrícula</label>
+                <textarea name="template_declaracao_matricula"
+                  defaultValue={(getNested(data, 'textos.template_declaracao_matricula') as string) ?? ''}
+                  className="w-full rounded-lg border border-stone-300 p-3 text-sm min-h-[120px] font-mono"
+                  placeholder={'Declaro para os devidos fins que {{nome_aluno}} está matriculado(a) na turma {{turma}} no ano letivo {{ano_letivo}}.'}
+                />
+                <p className="mt-1 text-xs text-zab-texto-claro">Use {'{{nome_aluno}}'}, {'{{turma}}'}, {'{{ano_letivo}}'} como variáveis</p>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-zab-texto">Texto Padrão — Declaração de Frequência</label>
+                <textarea name="template_declaracao_frequencia"
+                  defaultValue={(getNested(data, 'textos.template_declaracao_frequencia') as string) ?? ''}
+                  className="w-full rounded-lg border border-stone-300 p-3 text-sm min-h-[120px] font-mono"
+                  placeholder={'Declaro para os devidos fins que {{nome_aluno}} teve {{frequencia}}% de frequência no ano letivo {{ano_letivo}}.'}
+                />
+                <p className="mt-1 text-xs text-zab-texto-claro">Use {'{{nome_aluno}}'}, {'{{frequencia}}'}, {'{{ano_letivo}}'} como variáveis</p>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-zab-texto">Cláusulas do Contrato de Matrícula</label>
+                <textarea name="clausulas_contrato"
+                  defaultValue={(getNested(data, 'textos.clausulas_contrato') as string) ?? ''}
+                  className="w-full rounded-lg border border-stone-300 p-3 text-sm min-h-[150px] font-mono"
+                  placeholder="Cláusula 1 — ..."
+                />
+                <p className="mt-1 text-xs text-zab-texto-claro">Texto livre que será incluído no contrato de matrícula</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === 'portal' && (
+          <Card>
+            <CardContent className="p-6 space-y-5">
+              <div className="flex items-center gap-2 mb-1">
+                <Smartphone size={18} className="text-zab-verde" />
+                <h2 className="text-base font-semibold text-zab-texto-escuro">Portal do Responsável</h2>
+              </div>
+
+              <p className="text-sm text-zab-texto">O que o responsável pode <strong>ver</strong>:</p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {[
+                  { name: 'pode_ver_notas', label: 'Notas/Boletim' },
+                  { name: 'pode_ver_frequencia', label: 'Frequência' },
+                  { name: 'pode_ver_financeiro', label: 'Financeiro' },
+                  { name: 'pode_ver_agenda', label: 'Agenda' },
+                  { name: 'pode_ver_comunicados', label: 'Comunicados' },
+                  { name: 'pode_ver_calendario', label: 'Calendário' },
+                ].map((item) => (
+                  <label key={item.name} className="flex items-center gap-2 rounded-lg border border-stone-200 p-3 text-sm hover:bg-stone-50 cursor-pointer">
+                    <input type="checkbox" name={item.name} className="rounded border-stone-300"
+                      defaultChecked={(getNested(data, `config_portal.${item.name}`) as boolean) ?? true}
+                    />
+                    {item.label}
+                  </label>
+                ))}
+              </div>
+
+              <p className="text-sm text-zab-texto mt-4">O que o responsável pode <strong>fazer</strong>:</p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {[
+                  { name: 'pode_justificar_falta', label: 'Justificar falta' },
+                  { name: 'pode_solicitar_documentos', label: 'Solicitar documentos' },
+                  { name: 'pode_responder_agenda', label: 'Responder agenda' },
+                ].map((item) => (
+                  <label key={item.name} className="flex items-center gap-2 rounded-lg border border-stone-200 p-3 text-sm hover:bg-stone-50 cursor-pointer">
+                    <input type="checkbox" name={item.name} className="rounded border-stone-300"
+                      defaultChecked={(getNested(data, `config_portal.${item.name}`) as boolean) ?? false}
+                    />
+                    {item.label}
+                  </label>
+                ))}
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-zab-texto">Responsável pode atualizar dados de contato?</label>
+                <select name="pode_atualizar_dados" defaultValue={(getNested(data, 'config_portal.pode_atualizar_dados') as boolean) ? 'sim' : 'nao'}
+                  className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm">
+                  <option value="sim">Sim</option>
+                  <option value="nao">Não</option>
+                </select>
               </div>
             </CardContent>
           </Card>

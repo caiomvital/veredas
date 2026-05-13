@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Select } from '@/components/ui/select'
 import { Plus, Eye, Trash2 } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { WhatsAppButton } from '@/components/ui/whatsapp-button'
 
 function getTurmaLabel(row: AlunoComTurma): string {
   const ativa = row.matriculas?.find((m) => (m as unknown as { status?: string }).status !== 'cancelada')
@@ -39,6 +40,14 @@ const columns: Column<AlunoComTurma>[] = [
     key: 'aluno_responsavel', label: 'Responsável',
     sortable: false,
     render: (row) => getResponsavelLabel(row),
+  },
+  {
+    key: 'whatsapp', label: '',
+    sortable: false,
+    render: (row) => {
+      const tel = row.aluno_responsavel?.[0]?.responsaveis?.telefone
+      return tel ? <WhatsAppButton telefone={tel} /> : null
+    },
   },
   {
     key: 'status',

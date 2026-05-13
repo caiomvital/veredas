@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Plus, Eye, Trash2 } from 'lucide-react'
+import { WhatsAppButton } from '@/components/ui/whatsapp-button'
 import type { Funcionario } from '@/types/entities'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
@@ -22,6 +23,12 @@ const columns: Column<Funcionario>[] = [
   { key: 'nome_completo', label: 'Nome', sortable: true },
   { key: 'cpf', label: 'CPF' },
   { key: 'email', label: 'E-mail', sortable: true },
+  { key: 'telefone', label: 'Telefone', render: (row) => row.telefone ?? '—' },
+  {
+    key: 'whatsapp', label: '',
+    sortable: false,
+    render: (row) => row.telefone ? <WhatsAppButton telefone={row.telefone} /> : null,
+  },
   {
     key: 'cargo',
     label: 'Cargo',

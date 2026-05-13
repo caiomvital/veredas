@@ -17,6 +17,7 @@ export interface AlunoFrequenciaCritica {
   frequenciaPct: number
   aulasPodeFaltar: number
   nivel: 'critico' | 'atencao'
+  responsavelTelefone: string | null
 }
 
 export async function listarFrequenciaCritica(): Promise<ActionResult<AlunoFrequenciaCritica[]>> {
@@ -89,11 +90,33 @@ export async function listarFrequenciaCritica(): Promise<ActionResult<AlunoFrequ
           frequenciaPct: pct,
           aulasPodeFaltar,
           nivel: pct < 75 ? 'critico' : 'atencao',
+          responsavelTelefone: null,
         })
       }
     }
 
-    return { data: criticos, error: null }
+    // Buscar telefone dos responsáveis
+    const alunoIds = [...new Set(criticos.map((c) => c.alunoId))]
+    const telefoneMap = new Map<string, string | null>()
+    if (alunoIds.length > 0) {
+      const { data: vinculos } = await supabase
+        .from('responsavel_aluno')
+        .select('aluno_id, responsaveis!inner(telefone)')
+        .in('aluno_id', alunoIds)
+      for (const v of vinculos ?? []) {
+        const r = v.responsaveis as unknown as { telefone: string | null }
+        if (!telefoneMap.has(v.aluno_id)) {
+          telefoneMap.set(v.aluno_id, r.telefone ?? null)
+        }
+      }
+    }
+
+    const criticosComTel = criticos.map((c) => ({
+      ...c,
+      responsavelTelefone: telefoneMap.get(c.alunoId) ?? null,
+    }))
+
+    return { data: criticosComTel, error: null }
   } catch (err) {
     return { data: null, error: 'Erro ao calcular frequência crítica' }
   }

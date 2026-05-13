@@ -10,6 +10,7 @@ import { Select } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge, statusBadge } from '@/components/ui/badge'
 import { Download, Search, Printer, User } from 'lucide-react'
+import { WhatsAppButton } from '@/components/ui/whatsapp-button'
 
 function formatDate(data: string | null) {
   if (!data) return '—'
@@ -166,7 +167,9 @@ export default function FichaAlunoPage() {
                       <p className="font-medium text-gray-800">
                         {r.grau_parentesco}: {r.nome_completo}
                       </p>
-                      <p className="text-xs text-gray-500">CPF: {r.cpf} | Tel: {r.telefone || '—'} | E-mail: {r.email}</p>
+                      <p className="text-xs text-gray-500">CPF: {r.cpf} | Tel: {r.telefone || '—'} | E-mail: {r.email}
+                        {r.telefone && <WhatsAppButton telefone={r.telefone} variant="icon" />}
+                      </p>
                     </div>
                   ))
                 )}
