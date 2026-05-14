@@ -186,7 +186,7 @@ async function fetchLandingData(): Promise<{
 }> {
   const cookieStore = await cookies()
   const slug = cookieStore.get('escola_slug')?.value
-  const escolaSlug = slug ?? process.env.NEXT_PUBLIC_SCHOOL_ID ?? 'zab-educacao'
+  const escolaSlug = slug ?? process.env.NEXT_PUBLIC_SCHOOL_ID ?? 'zab'
 
   const admin = createAdminClient()
 

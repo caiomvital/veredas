@@ -12,7 +12,7 @@ export const schoolConfig = {
   // =========================================================
   // DADOS DA ESCOLA
   // =========================================================
-  slug: 'zab-educacao',
+  slug: 'zab',
   nome: 'Grupo ZAB de Educação',
   nome_curto: 'ZAB',
   cnpj: '00.000.000/0001-00',
