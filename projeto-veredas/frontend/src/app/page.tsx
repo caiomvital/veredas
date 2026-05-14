@@ -155,12 +155,24 @@ function truncate(text: string, max: number): string {
   return text.length > max ? text.slice(0, max) + '…' : text
 }
 
-function getNested(obj: Record<string, unknown> | null, path: string): unknown {
-  if (!obj || Object.keys(obj).length === 0) return undefined
-  return path.split('.').reduce((acc: unknown, key) => {
-    if (acc && typeof acc === 'object') return (acc as Record<string, unknown>)[key]
-    return undefined
-  }, obj)
+// ── Safe query helper ──
+
+async function safeQuery<T>(
+  fn: () => PromiseLike<{ data: T | null; error: unknown }>,
+  fallback: T,
+  label: string
+): Promise<T> {
+  try {
+    const { data, error } = await fn()
+    if (error) {
+      console.error(`[landing] ${label}:`, error)
+      return fallback
+    }
+    return data ?? fallback
+  } catch (e) {
+    console.error(`[landing] ${label}:`, e)
+    return fallback
+  }
 }
 
 // ── Data fetching ──
@@ -176,115 +188,87 @@ async function fetchLandingData(): Promise<{
   const slug = cookieStore.get('escola_slug')?.value
   const escolaSlug = slug ?? process.env.NEXT_PUBLIC_SCHOOL_ID ?? 'zab-educacao'
 
-  try {
-    const admin = createAdminClient()
-    const { data: escola } = await admin
-      .from('escolas')
-      .select('*')
-      .eq('slug', escolaSlug)
-      .single()
+  const admin = createAdminClient()
 
-    if (!escola) throw new Error('Escola não encontrada')
+  const escola = await safeQuery(
+    () => admin.from('escolas').select('*').eq('slug', escolaSlug).single(),
+    null,
+    'escolas'
+  )
 
-    const row = escola as unknown as Record<string, unknown>
-    const escolaId = row.id as string
-    const textos = (row.textos as Record<string, unknown>) ?? {}
-    const iv = (row.identidade_visual as Record<string, string>) ?? {}
-    const contato = (row.contato as Record<string, unknown>) ?? {}
-    const end = (row.endereco as Record<string, string>) ?? {}
-
-    // Buscar fotos
-    const { data: fotosRaw } = await admin
-      .from('fotos_escola')
-      .select('url, legenda')
-      .eq('escola_id', escolaId)
-      .eq('ativo', true)
-      .order('ordem')
-
-    // Buscar séries
-    const { data: seriesRaw } = await admin
-      .from('series_escolares')
-      .select('*')
-      .eq('escola_id', escolaId)
-      .eq('ativo', true)
-      .order('ordem')
-
-    // Buscar comunicados públicos
-    const { data: comunsRaw } = await admin
-      .from('comunicados')
-      .select('id, titulo, corpo, data_publicacao')
-      .eq('escola_id', escolaId)
-      .eq('publico', true)
-      .order('data_publicacao', { ascending: false })
-      .limit(6)
-
-    // Buscar eventos públicos futuros
-    const today = new Date().toISOString().split('T')[0]
-    const { data: eventosRaw } = await admin
-      .from('eventos_calendario')
-      .select('*')
-      .eq('escola_id', escolaId)
-      .eq('publico', true)
-      .gte('data_inicio', today)
-      .order('data_inicio', { ascending: true })
-      .limit(10)
-
-    const data: LandingData = {
-      nome: (row.nome as string) ?? fallbackConfig.nome,
-      slug: (row.slug as string) ?? fallbackConfig.slug,
-      corPrimaria: iv.cor_primaria ?? fallbackConfig.identidadeVisual.cor_primaria,
-      corSecundaria: iv.cor_secundaria ?? fallbackConfig.identidadeVisual.cor_secundaria,
-      slogan: (textos.slogan as string) ?? fallbackConfig.textos.slogan,
-      sobre: (textos.sobre as string) ?? fallbackConfig.textos.sobre,
-      missao: (textos.missao as string) ?? fallbackConfig.textos.missao,
-      valores: (textos.valores as { titulo: string; descricao: string }[]) ?? fallbackConfig.textos.valores,
-      rodape: (textos.rodape as string) ?? fallbackConfig.textos.rodape,
-      telefone: (contato.telefone as string) ?? fallbackConfig.contato.telefone,
-      email: (contato.email as string) ?? fallbackConfig.contato.email,
-      endereco: {
-        rua: end.rua ?? fallbackConfig.endereco.rua,
-        numero: end.numero ?? fallbackConfig.endereco.numero,
-        bairro: end.bairro ?? fallbackConfig.endereco.bairro,
-        cidade: end.cidade ?? fallbackConfig.endereco.cidade,
-        uf: end.uf ?? fallbackConfig.endereco.uf,
-      },
-      redesSociais: (contato.redes_sociais as { tipo: string; url: string }[]) ?? fallbackConfig.redesSociais,
-      anosHistoria: (row.ano_letivo_atual as number) ?? 30,
-    }
-
-    return {
-      data,
-      fotos: (fotosRaw as FotoRecord[]) ?? [],
-      series: (seriesRaw as SerieRecord[]) ?? [],
-      comunicados: (comunsRaw as ComunicadoRecord[]) ?? [],
-      eventos: (eventosRaw as EventoRecord[]) ?? [],
-    }
-  } catch {
-    // Fallback completo para schoolConfig
+  if (!escola) {
     const cfg = fallbackConfig
     return {
       data: {
-        nome: cfg.nome,
-        slug: cfg.slug,
+        nome: cfg.nome, slug: cfg.slug,
         corPrimaria: cfg.identidadeVisual.cor_primaria,
         corSecundaria: cfg.identidadeVisual.cor_secundaria,
-        slogan: cfg.textos.slogan,
-        sobre: cfg.textos.sobre,
-        missao: cfg.textos.missao,
-        valores: cfg.textos.valores,
-        rodape: cfg.textos.rodape,
-        telefone: cfg.contato.telefone,
-        email: cfg.contato.email,
-        endereco: cfg.endereco,
-        redesSociais: cfg.redesSociais,
-        anosHistoria: 30,
+        slogan: cfg.textos.slogan, sobre: cfg.textos.sobre,
+        missao: cfg.textos.missao, valores: cfg.textos.valores,
+        rodape: cfg.textos.rodape, telefone: cfg.contato.telefone,
+        email: cfg.contato.email, endereco: cfg.endereco,
+        redesSociais: cfg.redesSociais, anosHistoria: 30,
       },
-      fotos: [],
-      series: [],
-      comunicados: [],
-      eventos: [],
+      fotos: [], series: [], comunicados: [], eventos: [],
     }
   }
+
+  const row = escola as unknown as Record<string, unknown>
+  const escolaId = row.id as string
+  const textos = (row.textos as Record<string, unknown>) ?? {}
+  const iv = (row.identidade_visual as Record<string, string>) ?? {}
+  const contato = (row.contato as Record<string, unknown>) ?? {}
+  const end = (row.endereco as Record<string, string>) ?? {}
+
+  const fotos = await safeQuery(
+    () => admin.from('fotos_escola').select('url, legenda').eq('escola_id', escolaId).eq('ativo', true).order('ordem'),
+    [],
+    'fotos_escola'
+  )
+
+  const series = await safeQuery(
+    () => admin.from('series_escolares').select('*').eq('escola_id', escolaId).eq('ativo', true).order('ordem'),
+    [],
+    'series_escolares'
+  )
+
+  const today = new Date().toISOString().split('T')[0]
+  const comunicados = await safeQuery(
+    () => admin.from('comunicados').select('id, titulo, corpo, data_publicacao').eq('escola_id', escolaId).eq('publico', true).order('data_publicacao', { ascending: false }).limit(6),
+    [],
+    'comunicados'
+  )
+
+  const eventos = await safeQuery(
+    () => admin.from('eventos_calendario').select('*').eq('escola_id', escolaId).eq('publico', true).gte('data_inicio', today).order('data_inicio', { ascending: true }).limit(10),
+    [],
+    'eventos_calendario'
+  )
+
+  const data: LandingData = {
+    nome: (row.nome as string) ?? fallbackConfig.nome,
+    slug: (row.slug as string) ?? fallbackConfig.slug,
+    corPrimaria: iv.cor_primaria ?? fallbackConfig.identidadeVisual.cor_primaria,
+    corSecundaria: iv.cor_secundaria ?? fallbackConfig.identidadeVisual.cor_secundaria,
+    slogan: (textos.slogan as string) ?? fallbackConfig.textos.slogan,
+    sobre: (textos.sobre as string) ?? fallbackConfig.textos.sobre,
+    missao: (textos.missao as string) ?? fallbackConfig.textos.missao,
+    valores: (textos.valores as { titulo: string; descricao: string }[]) ?? fallbackConfig.textos.valores,
+    rodape: (textos.rodape as string) ?? fallbackConfig.textos.rodape,
+    telefone: (contato.telefone as string) ?? fallbackConfig.contato.telefone,
+    email: (contato.email as string) ?? fallbackConfig.contato.email,
+    endereco: {
+      rua: end.rua ?? fallbackConfig.endereco.rua,
+      numero: end.numero ?? fallbackConfig.endereco.numero,
+      bairro: end.bairro ?? fallbackConfig.endereco.bairro,
+      cidade: end.cidade ?? fallbackConfig.endereco.cidade,
+      uf: end.uf ?? fallbackConfig.endereco.uf,
+    },
+    redesSociais: (contato.redes_sociais as { tipo: string; url: string }[]) ?? fallbackConfig.redesSociais,
+    anosHistoria: (row.ano_letivo_atual as number) ?? 30,
+  }
+
+  return { data, fotos, series, comunicados, eventos }
 }
 
 // ── Section: Header ──

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { criarTurma } from '@/lib/actions/turmas'
 import { listarSeries } from '@/lib/actions/series-escolares'
+import { BackButton } from '@/components/ui/back-button'
 import type { SerieEscolar } from '@/lib/actions/series-escolares'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -43,7 +44,7 @@ export default function NovaTurmaPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-6">
-        <Link href="/app/admin/turmas" className="text-sm text-primary hover:underline">← Voltar</Link>
+        <BackButton href="/app/admin/turmas" />
         <h1 className="mt-2 text-2xl font-bold text-[var(--color-primary-800)]">Nova Turma</h1>
       </div>
 

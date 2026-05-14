@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { BackButton } from '@/components/ui/back-button'
 import { getFuncionario, atualizarFuncionario, excluirFuncionario } from '@/lib/actions/funcionarios'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -79,7 +80,7 @@ export default function EditarFuncionarioPage() {
     return (
       <div className="p-8 text-center">
         <p className="text-red-600">{error ?? 'Funcionário não encontrado.'}</p>
-        <Link href="/admin/funcionarios" className="mt-4 inline-block text-sm text-primary hover:underline">← Voltar</Link>
+        <BackButton href="/admin/funcionarios" />
       </div>
     )
   }
@@ -87,7 +88,7 @@ export default function EditarFuncionarioPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-6">
-        <Link href="/admin/funcionarios" className="text-sm text-primary hover:underline">← Voltar</Link>
+        <BackButton href="/admin/funcionarios" />
         <h1 className="mt-2 text-2xl font-bold text-[var(--color-primary-800)]">{funcionario.nome_completo}</h1>
       </div>
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { BackButton } from '@/components/ui/back-button'
 import { getPeriodo, atualizarPeriodo, excluirPeriodo } from '@/lib/actions/periodos'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -68,7 +69,7 @@ export default function EditarPeriodoPage() {
     return (
       <div className="p-8 text-center">
         <p className="text-red-600">{error ?? 'Período não encontrado.'}</p>
-        <Link href="/admin/periodos" className="mt-4 inline-block text-sm text-primary hover:underline">← Voltar</Link>
+        <BackButton href="/admin/periodos" />
       </div>
     )
   }
@@ -76,7 +77,7 @@ export default function EditarPeriodoPage() {
   return (
     <div className="mx-auto max-w-xl">
       <div className="mb-6">
-        <Link href="/admin/periodos" className="text-sm text-primary hover:underline">← Voltar</Link>
+        <BackButton href="/admin/periodos" />
         <h1 className="mt-2 text-2xl font-bold text-[var(--color-primary-800)]">{periodo.nome}</h1>
       </div>
 

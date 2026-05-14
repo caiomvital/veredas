@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Image, Upload, Trash2, ChevronUp, ChevronDown, X, AlertCircle, Loader2 } from 'lucide-react'
 import { listarFotos, uploadFoto, excluirFoto, reordenarFotos } from '@/lib/actions/fotos'
 import type { FotoEscola } from '@/lib/actions/fotos'
+import { BackButton } from '@/components/ui/back-button'
 
 const MAX_FOTOS = 20
 
@@ -113,6 +114,10 @@ export default function AdminFotosPage() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
+      {/* Back button */}
+      <div className="mb-4">
+        <BackButton href="/app/admin" />
+      </div>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>

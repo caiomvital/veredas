@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { BackButton } from '@/components/ui/back-button'
 import { criarAluno } from '@/lib/actions/alunos'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -93,7 +94,7 @@ export default function NovoAlunoPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-6">
-        <Link href="/app/admin/alunos" className="text-sm text-primary hover:underline">← Voltar</Link>
+        <BackButton href="/app/admin/alunos" />
         <h1 className="mt-2 text-2xl font-bold text-[var(--color-primary-800)]">Novo Aluno</h1>
       </div>
 

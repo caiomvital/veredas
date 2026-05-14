@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { getResponsavel, atualizarResponsavel, getVinculosPorResponsavel } from '@/lib/actions/responsaveis'
 import { listarAlunos } from '@/lib/actions/alunos'
 import { vincularAluno, desvincularAluno } from '@/lib/actions/responsaveis'
+import { BackButton } from '@/components/ui/back-button'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -94,7 +95,7 @@ export default function EditarResponsavelPage() {
     return (
       <div className="p-8 text-center">
         <p className="text-red-600">{error ?? 'Responsável não encontrado.'}</p>
-        <Link href="/admin/responsaveis" className="mt-4 inline-block text-sm text-primary hover:underline">← Voltar</Link>
+        <BackButton href="/admin/responsaveis" />
       </div>
     )
   }
@@ -102,7 +103,7 @@ export default function EditarResponsavelPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-6">
-        <Link href="/admin/responsaveis" className="text-sm text-primary hover:underline">← Voltar</Link>
+        <BackButton href="/admin/responsaveis" />
         <h1 className="mt-2 text-2xl font-bold text-[var(--color-primary-800)]">{responsavel.nome_completo}</h1>
       </div>
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { BackButton } from '@/components/ui/back-button'
 import { criarComunicado } from '@/lib/actions/comunicados'
 import { gerarAvisosComunicado } from '@/lib/actions/avisos-whatsapp'
 import { listarTurmas } from '@/lib/actions/turmas'
@@ -90,7 +91,8 @@ export default function NovoComunicadoPage() {
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[var(--color-primary-800)]">Novo Comunicado</h1>
+        <BackButton href="/app/comunicados" />
+        <h1 className="mt-2 text-2xl font-bold text-[var(--color-primary-800)]">Novo Comunicado</h1>
       </div>
 
       {error && (

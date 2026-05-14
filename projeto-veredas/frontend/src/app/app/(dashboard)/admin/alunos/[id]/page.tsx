@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { BackButton } from '@/components/ui/back-button'
 import { getAluno, atualizarAluno, excluirAluno } from '@/lib/actions/alunos'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -74,7 +75,7 @@ export default function EditarAlunoPage() {
     return (
       <div className="p-8 text-center">
         <p className="text-red-600">{error ?? 'Aluno não encontrado.'}</p>
-        <Link href="/admin/alunos" className="mt-4 inline-block text-sm text-primary hover:underline">← Voltar</Link>
+        <BackButton href="/admin/alunos" />
       </div>
     )
   }
@@ -82,7 +83,7 @@ export default function EditarAlunoPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-6">
-        <Link href="/admin/alunos" className="text-sm text-primary hover:underline">← Voltar</Link>
+        <BackButton href="/admin/alunos" />
         <h1 className="mt-2 text-2xl font-bold text-[var(--color-primary-800)]">{aluno.nome_completo}</h1>
         <p className="text-sm text-gray-500">Matrícula: {aluno.matricula}</p>
       </div>
