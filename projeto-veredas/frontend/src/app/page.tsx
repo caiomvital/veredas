@@ -219,6 +219,7 @@ async function fetchLandingData(): Promise<{
   const iv = (row.identidade_visual as Record<string, string>) ?? {}
   const contato = (row.contato as Record<string, unknown>) ?? {}
   const end = (row.endereco as Record<string, string>) ?? {}
+  const configAcademica = (row.config_academica as Record<string, unknown>) ?? {}
 
   const fotos = await safeQuery(
     () => admin.from('fotos_escola').select('url, legenda').eq('escola_id', escolaId).eq('ativo', true).order('ordem'),
@@ -265,7 +266,7 @@ async function fetchLandingData(): Promise<{
       uf: end.uf ?? fallbackConfig.endereco.uf,
     },
     redesSociais: (contato.redes_sociais as { tipo: string; url: string }[]) ?? fallbackConfig.redesSociais,
-    anosHistoria: (row.ano_letivo_atual as number) ?? 30,
+    anosHistoria: (configAcademica.anos_experiencia as number) ?? 30,
   }
 
   return { data, fotos, series, comunicados, eventos }
@@ -611,8 +612,8 @@ function SectionCalendario({ eventos }: { eventos: EventoRecord[] }) {
 
 function SectionContato({ data }: { data: LandingData }) {
   return (
-    <section id="contato" className="py-20 md:py-28 relative" style={{ backgroundColor: data.corPrimaria }}>
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <section id="contato" className="py-20 md:py-28 relative overflow-hidden" style={{ backgroundColor: data.corPrimaria }}>
+      <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
         <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full blur-3xl" style={{ backgroundColor: `${data.corSecundaria}22` }} />
       </div>
@@ -748,6 +749,11 @@ function SectionFooter({ data }: { data: LandingData }) {
 
         <div className="mt-10 pt-8 border-t border-white/5 text-center text-xs text-gray-500">
           <p>{data.rodape}</p>
+          <p className="mt-3">
+            <a href="https://projetoveredas.com.br" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-400 transition-colors">
+              Tecnologia por Projeto Veredas
+            </a>
+          </p>
         </div>
       </div>
     </footer>

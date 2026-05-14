@@ -67,6 +67,7 @@ export const schoolConfig = {
     regime: 'bimestral',
     media_aprovacao: 6.0,
     qtd_avaliacoes_por_periodo: 4,
+    anos_experiencia: 30,
   },
 
   // =========================================================
