@@ -506,16 +506,16 @@ function SectionComunicados({ comunicados }: { comunicados: ComunicadoRecord[] }
   if (comunicados.length === 0) return null
 
   return (
-    <section id="comunicados" className="py-20 md:py-28 bg-gray-50">
+    <section id="comunicados" className="py-20 md:py-28" style={{ backgroundColor: '#0D1F0E' }}>
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="text-center mb-14">
-          <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-800 tracking-wider uppercase mb-4 border border-green-200">
+          <span className="inline-flex items-center rounded-full bg-white/10 backdrop-blur-sm px-3 py-1 text-xs font-semibold tracking-wider uppercase mb-4 border border-white/10" style={{ color: '#B8860B' }}>
             Comunicados
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+          <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight">
             Fique por dentro
           </h2>
-          <p className="mt-4 text-gray-500 max-w-2xl mx-auto text-lg">
+          <p className="mt-4 text-gray-400 max-w-2xl mx-auto text-lg">
             Acompanhe as novidades e comunicados importantes da escola.
           </p>
         </div>
@@ -524,14 +524,14 @@ function SectionComunicados({ comunicados }: { comunicados: ComunicadoRecord[] }
           {comunicados.map((c) => (
             <div
               key={c.id}
-              className="rounded-2xl border border-stone-200 bg-white p-6 hover:shadow-lg transition-all"
+              className="rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/10 hover:-translate-y-0.5 transition-all duration-300"
             >
-              <div className="flex items-center gap-2 text-xs text-gray-400 mb-3">
+              <div className="flex items-center gap-2 text-xs mb-3" style={{ color: '#B8860B' }}>
                 <BellIcon />
                 <span>{formatDate(c.data_publicacao)}</span>
               </div>
-              <h3 className="font-bold text-gray-900 mb-2">{c.titulo}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{truncate(c.corpo, 150)}</p>
+              <h3 className="font-bold text-white mb-2">{c.titulo}</h3>
+              <p className="text-sm text-gray-400 leading-relaxed">{truncate(c.corpo, 150)}</p>
             </div>
           ))}
         </div>
@@ -545,6 +545,14 @@ function SectionComunicados({ comunicados }: { comunicados: ComunicadoRecord[] }
 function SectionCalendario({ eventos }: { eventos: EventoRecord[] }) {
   if (eventos.length === 0) return null
 
+  const TIPO_STYLES: Record<string, { bg: string; text: string }> = {
+    feriado: { bg: '#1B5E2022', text: '#4CAF50' },
+    prova: { bg: '#B8860B22', text: '#B8860B' },
+    reuniao: { bg: '#1B5E2022', text: '#4CAF50' },
+    evento: { bg: '#B8860B22', text: '#B8860B' },
+    recesso: { bg: '#ffffff15', text: '#9CA3AF' },
+  }
+
   const TIPO_LABELS: Record<string, string> = {
     feriado: 'Feriado',
     prova: 'Prova',
@@ -554,54 +562,54 @@ function SectionCalendario({ eventos }: { eventos: EventoRecord[] }) {
   }
 
   return (
-    <section id="calendario" className="py-20 md:py-28 bg-white">
+    <section id="calendario" className="py-20 md:py-28" style={{ backgroundColor: '#0D1F0E' }}>
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="text-center mb-14">
-          <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-800 tracking-wider uppercase mb-4 border border-green-200">
+          <span className="inline-flex items-center rounded-full bg-white/10 backdrop-blur-sm px-3 py-1 text-xs font-semibold tracking-wider uppercase mb-4 border border-white/10" style={{ color: '#B8860B' }}>
             Calendário
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+          <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight">
             Próximos eventos
           </h2>
-          <p className="mt-4 text-gray-500 max-w-2xl mx-auto text-lg">
+          <p className="mt-4 text-gray-400 max-w-2xl mx-auto text-lg">
             Datas importantes para não perder.
           </p>
         </div>
 
         <div className="max-w-2xl mx-auto space-y-3">
-          {eventos.map((e) => (
-            <div
-              key={e.id}
-              className="flex items-start gap-4 rounded-xl border border-stone-200 bg-white p-4 hover:shadow-md transition-all"
-            >
+          {eventos.map((e) => {
+            const tipoStyle = TIPO_STYLES[e.tipo] ?? { bg: '#ffffff15', text: '#9CA3AF' }
+            return (
               <div
-                className="flex-shrink-0 w-12 h-12 rounded-lg flex flex-col items-center justify-center text-white text-xs font-bold"
-                style={{ backgroundColor: fallbackConfig.identidadeVisual.cor_primaria }}
+                key={e.id}
+                className="flex items-start gap-4 rounded-xl border border-white/10 bg-white/5 p-4 hover:bg-white/10 hover:-translate-y-0.5 transition-all duration-300"
               >
-                <span>{new Date(e.data_inicio + 'T12:00:00').getDate()}</span>
-                <span className="text-[9px] opacity-80">
-                  {new Date(e.data_inicio + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-semibold text-gray-900 text-sm">{e.nome}</h3>
-                  <span
-                    className="text-[10px] font-medium px-2 py-0.5 rounded-full"
-                    style={{
-                      backgroundColor: `${fallbackConfig.identidadeVisual.cor_primaria}15`,
-                      color: fallbackConfig.identidadeVisual.cor_primaria,
-                    }}
-                  >
-                    {TIPO_LABELS[e.tipo] ?? e.tipo}
+                <div
+                  className="flex-shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center text-xs font-bold"
+                  style={{ backgroundColor: '#1B5E20' }}
+                >
+                  <span className="text-white text-lg leading-none">{new Date(e.data_inicio + 'T12:00:00').getDate()}</span>
+                  <span className="text-white/70 text-[10px] mt-0.5">
+                    {new Date(e.data_inicio + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}
                   </span>
                 </div>
-                {e.descricao && (
-                  <p className="text-xs text-gray-500 mt-1">{e.descricao}</p>
-                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-semibold text-white text-sm">{e.nome}</h3>
+                    <span
+                      className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                      style={{ backgroundColor: tipoStyle.bg, color: tipoStyle.text }}
+                    >
+                      {TIPO_LABELS[e.tipo] ?? e.tipo}
+                    </span>
+                  </div>
+                  {e.descricao && (
+                    <p className="text-xs text-gray-400 mt-1">{e.descricao}</p>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </section>
