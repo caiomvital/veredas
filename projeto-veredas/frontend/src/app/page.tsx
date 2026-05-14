@@ -1,54 +1,69 @@
 import { cookies } from 'next/headers'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
-import { MobileMenu } from '@/components/landing/MobileMenu'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { schoolConfig as fallbackConfig } from '@/lib/schoolConfig'
-import type { Escola } from '@/types/school'
+import { MobileMenu } from '@/components/landing/MobileMenu'
+import { HeroCarousel } from '@/components/landing/carousel'
+import { Galeria } from '@/components/landing/lightbox'
 
-async function getEscolaData(): Promise<Record<string, unknown>> {
-  const cookieStore = await cookies()
-  const slug = cookieStore.get('escola_slug')?.value
+// ── Types ──
 
-  const escolaSlug = slug ?? process.env.NEXT_PUBLIC_SCHOOL_ID ?? 'escola-teste'
-
-  try {
-    const supabase = await createClient()
-    const { data, error } = await supabase
-      .from('escolas')
-      .select('*')
-      .eq('slug', escolaSlug)
-      .eq('ativo', true)
-      .single()
-
-    if (!error && data) {
-      const row = data as unknown as Record<string, unknown>
-      return row
-    }
-  } catch {
-    // fallback to static config
-  }
-
-  // fallback: mapear schoolConfig para formato similar ao banco
-  return {}
+interface FotoRecord {
+  url: string
+  legenda: string
 }
 
-const links = [
+interface SerieRecord {
+  id: string
+  nivel: string
+  nome: string
+  ordem: number
+}
+
+interface ComunicadoRecord {
+  id: string
+  titulo: string
+  corpo: string
+  data_publicacao: string
+}
+
+interface EventoRecord {
+  id: string
+  nome: string
+  descricao: string | null
+  data_inicio: string
+  data_fim: string | null
+  tipo: string
+}
+
+interface LandingData {
+  nome: string
+  slug: string
+  corPrimaria: string
+  corSecundaria: string
+  slogan: string
+  sobre: string
+  missao: string
+  valores: { titulo: string; descricao: string }[]
+  rodape: string
+  telefone: string
+  email: string
+  endereco: { rua?: string; numero?: string; bairro?: string; cidade?: string; uf?: string }
+  redesSociais: { tipo: string; url: string }[]
+  anosHistoria: number
+}
+
+// ── Navigation links ──
+
+const NAV_LINKS = [
   { label: 'Início', href: '#' },
   { label: 'Sobre', href: '#sobre' },
-  { label: 'Diferenciais', href: '#diferenciais' },
   { label: 'Níveis', href: '#niveis' },
+  { label: 'Galeria', href: '#galeria' },
   { label: 'Contato', href: '#contato' },
 ]
 
-function getNested(obj: Record<string, unknown> | null, path: string): unknown {
-  if (!obj || Object.keys(obj).length === 0) return undefined
-  return path.split('.').reduce((acc: unknown, key) => {
-    if (acc && typeof acc === 'object') return (acc as Record<string, unknown>)[key]
-    return undefined
-  }, obj)
-}
-
-// ── SVG Icons (inline) ──
+// ── SVG Icons ──
 
 function HeartIcon() {
   return (
@@ -82,18 +97,10 @@ function LightbulbIcon() {
   )
 }
 
-function CompassIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" /><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-    </svg>
-  )
-}
-
-function MailIcon() {
+function MapPinIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
     </svg>
   )
 }
@@ -106,168 +113,292 @@ function PhoneIcon() {
   )
 }
 
-function MapPinIcon() {
+function MailIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
     </svg>
   )
 }
 
-// ── Seções ──
+function CalendarIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  )
+}
 
-function Header({ data }: { data: Record<string, unknown> }) {
-  const nome = (data?.nome as string) ?? fallbackConfig.nome
-  const nomeCurto = (data?.slug as string)?.slice(0, 3).toUpperCase() ?? 'ZAB'
-  const iv = data?.identidade_visual as Record<string, string> | undefined
+function BellIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  )
+}
+
+// ── Helpers ──
+
+const NIVEIS_LABELS: Record<string, string> = {
+  infantil: 'Educação Infantil',
+  fund1: 'Ensino Fundamental — Anos Iniciais',
+  fund2: 'Ensino Fundamental — Anos Finais',
+  medio: 'Ensino Médio',
+}
+
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr + 'T12:00:00')
+  return d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })
+}
+
+function truncate(text: string, max: number): string {
+  return text.length > max ? text.slice(0, max) + '…' : text
+}
+
+function getNested(obj: Record<string, unknown> | null, path: string): unknown {
+  if (!obj || Object.keys(obj).length === 0) return undefined
+  return path.split('.').reduce((acc: unknown, key) => {
+    if (acc && typeof acc === 'object') return (acc as Record<string, unknown>)[key]
+    return undefined
+  }, obj)
+}
+
+// ── Data fetching ──
+
+async function fetchLandingData(): Promise<{
+  data: LandingData | null
+  fotos: FotoRecord[]
+  series: SerieRecord[]
+  comunicados: ComunicadoRecord[]
+  eventos: EventoRecord[]
+}> {
+  const cookieStore = await cookies()
+  const slug = cookieStore.get('escola_slug')?.value
+  const escolaSlug = slug ?? process.env.NEXT_PUBLIC_SCHOOL_ID ?? 'zab-educacao'
+
+  try {
+    const admin = createAdminClient()
+    const { data: escola } = await admin
+      .from('escolas')
+      .select('*')
+      .eq('slug', escolaSlug)
+      .single()
+
+    if (!escola) throw new Error('Escola não encontrada')
+
+    const row = escola as unknown as Record<string, unknown>
+    const escolaId = row.id as string
+    const textos = (row.textos as Record<string, unknown>) ?? {}
+    const iv = (row.identidade_visual as Record<string, string>) ?? {}
+    const contato = (row.contato as Record<string, unknown>) ?? {}
+    const end = (row.endereco as Record<string, string>) ?? {}
+
+    // Buscar fotos
+    const { data: fotosRaw } = await admin
+      .from('fotos_escola')
+      .select('url, legenda')
+      .eq('escola_id', escolaId)
+      .eq('ativo', true)
+      .order('ordem')
+
+    // Buscar séries
+    const { data: seriesRaw } = await admin
+      .from('series_escolares')
+      .select('*')
+      .eq('escola_id', escolaId)
+      .eq('ativo', true)
+      .order('ordem')
+
+    // Buscar comunicados públicos
+    const { data: comunsRaw } = await admin
+      .from('comunicados')
+      .select('id, titulo, corpo, data_publicacao')
+      .eq('escola_id', escolaId)
+      .eq('publico', true)
+      .order('data_publicacao', { ascending: false })
+      .limit(6)
+
+    // Buscar eventos públicos futuros
+    const today = new Date().toISOString().split('T')[0]
+    const { data: eventosRaw } = await admin
+      .from('eventos_calendario')
+      .select('*')
+      .eq('escola_id', escolaId)
+      .eq('publico', true)
+      .gte('data_inicio', today)
+      .order('data_inicio', { ascending: true })
+      .limit(10)
+
+    const data: LandingData = {
+      nome: (row.nome as string) ?? fallbackConfig.nome,
+      slug: (row.slug as string) ?? fallbackConfig.slug,
+      corPrimaria: iv.cor_primaria ?? fallbackConfig.identidadeVisual.cor_primaria,
+      corSecundaria: iv.cor_secundaria ?? fallbackConfig.identidadeVisual.cor_secundaria,
+      slogan: (textos.slogan as string) ?? fallbackConfig.textos.slogan,
+      sobre: (textos.sobre as string) ?? fallbackConfig.textos.sobre,
+      missao: (textos.missao as string) ?? fallbackConfig.textos.missao,
+      valores: (textos.valores as { titulo: string; descricao: string }[]) ?? fallbackConfig.textos.valores,
+      rodape: (textos.rodape as string) ?? fallbackConfig.textos.rodape,
+      telefone: (contato.telefone as string) ?? fallbackConfig.contato.telefone,
+      email: (contato.email as string) ?? fallbackConfig.contato.email,
+      endereco: {
+        rua: end.rua ?? fallbackConfig.endereco.rua,
+        numero: end.numero ?? fallbackConfig.endereco.numero,
+        bairro: end.bairro ?? fallbackConfig.endereco.bairro,
+        cidade: end.cidade ?? fallbackConfig.endereco.cidade,
+        uf: end.uf ?? fallbackConfig.endereco.uf,
+      },
+      redesSociais: (contato.redes_sociais as { tipo: string; url: string }[]) ?? fallbackConfig.redesSociais,
+      anosHistoria: (row.ano_letivo_atual as number) ?? 30,
+    }
+
+    return {
+      data,
+      fotos: (fotosRaw as FotoRecord[]) ?? [],
+      series: (seriesRaw as SerieRecord[]) ?? [],
+      comunicados: (comunsRaw as ComunicadoRecord[]) ?? [],
+      eventos: (eventosRaw as EventoRecord[]) ?? [],
+    }
+  } catch {
+    // Fallback completo para schoolConfig
+    const cfg = fallbackConfig
+    return {
+      data: {
+        nome: cfg.nome,
+        slug: cfg.slug,
+        corPrimaria: cfg.identidadeVisual.cor_primaria,
+        corSecundaria: cfg.identidadeVisual.cor_secundaria,
+        slogan: cfg.textos.slogan,
+        sobre: cfg.textos.sobre,
+        missao: cfg.textos.missao,
+        valores: cfg.textos.valores,
+        rodape: cfg.textos.rodape,
+        telefone: cfg.contato.telefone,
+        email: cfg.contato.email,
+        endereco: cfg.endereco,
+        redesSociais: cfg.redesSociais,
+        anosHistoria: 30,
+      },
+      fotos: [],
+      series: [],
+      comunicados: [],
+      eventos: [],
+    }
+  }
+}
+
+// ── Section: Header ──
+
+function Header({ data }: { data: LandingData }) {
+  const nomeCurto = data.slug.slice(0, 3).toUpperCase()
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-stone-200/60">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-8">
         <Link href="#" className="flex items-center gap-3 group">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zab-verde text-white text-sm font-bold tracking-wider group-hover:bg-zab-verde-hover transition-colors">
+          <div
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-white text-sm font-bold tracking-wider transition-colors"
+            style={{ backgroundColor: data.corPrimaria }}
+          >
             {nomeCurto}
           </div>
           <div className="hidden sm:block">
-            <p className="text-sm font-bold text-zab-verde leading-tight">{nomeCurto}</p>
-            <p className="text-[10px] text-zab-texto-claro leading-tight">{nome}</p>
+            <p className="text-sm font-bold leading-tight" style={{ color: data.corPrimaria }}>
+              {nomeCurto}
+            </p>
+            <p className="text-[10px] text-gray-500 leading-tight">{data.nome}</p>
           </div>
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">
-          {links.map((l) => (
-            <a key={l.href} href={l.href}
-              className="px-3 py-2 text-sm font-medium text-zab-texto hover:text-zab-verde transition-colors rounded-md hover:bg-zab-verde-claro">
+          {NAV_LINKS.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors rounded-md hover:bg-gray-100"
+            >
               {l.label}
             </a>
           ))}
-          <Link href="/app/login"
-            className="ml-4 inline-flex h-9 items-center rounded-lg border-2 border-zab-dourado px-4 text-sm font-semibold text-zab-dourado hover:bg-zab-dourado hover:text-white transition-all duration-200">
+          <Link
+            href="/app/login"
+            className="ml-4 inline-flex h-9 items-center rounded-lg px-4 text-sm font-semibold text-white hover:opacity-90 transition-all duration-200"
+            style={{ backgroundColor: data.corPrimaria }}
+          >
             Acessar o Sistema
           </Link>
         </nav>
 
-        <MobileMenu links={links} />
+        <MobileMenu links={NAV_LINKS} />
       </div>
     </header>
   )
 }
 
-function Hero({ data }: { data: Record<string, unknown> }) {
-  const textos = data?.textos as Record<string, unknown> | undefined
-  const slogan = (textos?.slogan as string) ?? fallbackConfig.textos.slogan
-  const anos = (data?.ano_letivo_atual as number) ?? 30
+// ── Section: Sobre ──
 
-  return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-zab-verde via-zab-verde-hover to-zab-verde-escuro">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-zab-dourado/10 blur-3xl" />
-        <div className="absolute top-1/3 right-1/4 w-64 h-64 rounded-full bg-white/[0.03] blur-2xl" />
-      </div>
-
-      <div className="relative mx-auto max-w-7xl px-4 lg:px-8 py-24 md:py-32">
-        <div className="max-w-3xl">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur-sm px-4 py-1.5 text-sm font-medium text-zab-verde-claro mb-6 border border-white/10">
-            <span className="h-2 w-2 rounded-full bg-zab-dourado" />
-            Mais de {anos} anos de história
-          </span>
-
-          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.1] tracking-tight text-white mb-6">
-            Educação que{' '}
-            <span className="text-zab-amber">transforma</span>
-            ,<br />
-            acolhimento que{' '}
-            <span className="text-zab-amber">desenvolve</span>
-          </h1>
-
-          <p className="text-lg md:text-xl text-zab-verde-claro-2 max-w-2xl mb-10 leading-relaxed">
-            {slogan}
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4">
-            <a href="#sobre"
-              className="inline-flex h-12 items-center justify-center rounded-xl bg-zab-dourado px-8 text-base font-bold text-white hover:bg-zab-dourado-hover transition-all duration-200 shadow-lg shadow-zab-dourado/25">
-              Conheça nossa proposta
-            </a>
-            <a href="#contato"
-              className="inline-flex h-12 items-center justify-center rounded-xl border-2 border-white/30 px-8 text-base font-semibold text-white hover:bg-white/10 transition-all duration-200">
-              Fale conosco
-            </a>
-          </div>
-        </div>
-
-        <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl">
-          {[
-            { num: `${anos}+`, label: 'Anos de experiência' },
-            { num: '600+', label: 'Alunos atendidos' },
-            { num: '40+', label: 'Educadores' },
-            { num: '100%', label: 'Acolhimento' },
-          ].map((s) => (
-            <div key={s.label} className="text-center">
-              <p className="text-2xl md:text-3xl font-bold text-zab-amber">{s.num}</p>
-              <p className="text-xs md:text-sm text-zab-verde-claro-3 mt-1">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function Sobre({ data }: { data: Record<string, unknown> }) {
-  const textos = data?.textos as Record<string, unknown> | undefined
-  const sobre = (textos?.sobre as string) ?? fallbackConfig.textos.sobre
-  const missao = (textos?.missao as string) ?? fallbackConfig.textos.missao
-  const valores = (textos?.valores as Array<{ titulo: string; descricao: string }>) ?? fallbackConfig.textos.valores
-
+function SectionSobre({ data }: { data: LandingData }) {
   return (
     <section id="sobre" className="py-20 md:py-28 bg-white">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
           <div className="relative order-2 md:order-1">
-            <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-zab-verde-claro to-zab-dourado-claro aspect-[4/3]">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <span className="text-7xl">🌱</span>
-                  <p className="mt-4 text-lg font-semibold text-zab-verde">Cultivando futuros</p>
+            <div
+              className="relative rounded-2xl overflow-hidden aspect-[4/3] flex items-center justify-center"
+              style={{
+                background: `linear-gradient(135deg, ${data.corPrimaria}22, ${data.corSecundaria}22)`,
+              }}
+            >
+              <div className="text-center">
+                <div
+                  className="mx-auto h-20 w-20 rounded-2xl flex items-center justify-center mb-4"
+                  style={{ backgroundColor: `${data.corPrimaria}15` }}
+                >
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={data.corPrimaria} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5" />
+                  </svg>
                 </div>
-              </div>
-              <div className="absolute top-4 left-4 flex gap-2">
-                <span className="h-2 w-2 rounded-full bg-zab-verde/20" />
-                <span className="h-2 w-2 rounded-full bg-zab-dourado/20" />
-                <span className="h-2 w-2 rounded-full bg-zab-verde/20" />
-              </div>
-            </div>
-            <div className="absolute -bottom-6 -right-6 bg-white rounded-xl shadow-xl p-4 border border-stone-100 hidden md:block">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">🧑‍🏫</span>
-                <div>
-                  <p className="text-sm font-bold text-zab-verde">Equipe Multidisciplinar</p>
-                  <p className="text-xs text-zab-texto-claro">Pedagogas, Psicólogas e Professoras</p>
-                </div>
+                <p className="text-lg font-semibold" style={{ color: data.corPrimaria }}>
+                  Cultivando futuros
+                </p>
               </div>
             </div>
           </div>
 
           <div className="order-1 md:order-2">
-            <span className="inline-flex items-center rounded-full bg-zab-verde-claro px-3 py-1 text-xs font-semibold text-zab-verde tracking-wider uppercase mb-4">
+            <span
+              className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wider uppercase mb-4 border"
+              style={{
+                color: data.corPrimaria,
+                backgroundColor: `${data.corPrimaria}15`,
+                borderColor: `${data.corPrimaria}30`,
+              }}
+            >
               Quem Somos
             </span>
-            <h2 className="text-3xl md:text-4xl font-bold text-zab-verde leading-tight mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold leading-tight mb-6 text-gray-900">
               Uma história construída com{' '}
-              <span className="text-zab-dourado">dedicação</span>
+              <span style={{ color: data.corSecundaria }}>dedicação</span>
             </h2>
-            <div className="space-y-4 text-zab-texto leading-relaxed">
-              <p>{sobre}</p>
-              <p>{missao}</p>
+            <div className="space-y-4 text-gray-600 leading-relaxed">
+              <p>{data.sobre}</p>
+              <p>{data.missao}</p>
             </div>
 
             <div className="mt-8 grid grid-cols-2 gap-4">
-              {valores.map((v: { titulo: string; descricao: string }) => (
-                <div key={v.titulo} className="rounded-xl bg-zab-creme border border-stone-200 p-4">
-                  <p className="font-bold text-zab-verde text-sm">{v.titulo}</p>
-                  <p className="text-xs text-zab-texto-claro mt-1 leading-relaxed">{v.descricao}</p>
+              {data.valores.map((v) => (
+                <div
+                  key={v.titulo}
+                  className="rounded-xl p-4 border"
+                  style={{
+                    backgroundColor: `${data.corPrimaria}08`,
+                    borderColor: `${data.corPrimaria}15`,
+                  }}
+                >
+                  <p className="font-bold text-sm" style={{ color: data.corPrimaria }}>
+                    {v.titulo}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1 leading-relaxed">{v.descricao}</p>
                 </div>
               ))}
             </div>
@@ -278,88 +409,103 @@ function Sobre({ data }: { data: Record<string, unknown> }) {
   )
 }
 
-function Diferenciais() {
-  const items = [
-    { icone: <HeartIcon />, titulo: 'Acolhimento Integral', desc: 'Acompanhamos cada aluno de forma individual, respeitando seu ritmo e necessidades.' },
-    { icone: <StarIcon />, titulo: 'Excelência Pedagógica', desc: 'Corpo docente qualificado e em constante formação, com metodologias ativas e atualizadas.' },
-    { icone: <UsersIcon />, titulo: 'Família + Escola', desc: 'Parceria permanente com as famílias através de canais abertos de comunicação e participação.' },
-    { icone: <LightbulbIcon />, titulo: 'Inovação e Tradição', desc: 'Equilibramos tecnologia educacional com valores humanos fundamentais para o desenvolvimento.' },
-    { icone: <CompassIcon />, titulo: 'Formação Integral', desc: 'Educação cognitiva, socioemocional e ética caminhando juntas em cada etapa.' },
-    { icone: <StarIcon />, titulo: 'Infraestrutura Acolhedora', desc: 'Ambientes planejados para estimular o aprendizado, a criatividade e o bem-estar.' },
-  ]
+// ── Section: Níveis ──
 
-  return (
-    <section id="diferenciais" className="py-20 md:py-28 bg-zab-creme">
-      <div className="mx-auto max-w-7xl px-4 lg:px-8">
-        <div className="text-center mb-14">
-          <span className="inline-flex items-center rounded-full bg-zab-dourado-claro px-3 py-1 text-xs font-semibold text-zab-dourado tracking-wider uppercase mb-4">
-            Nossos Diferenciais
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-zab-verde leading-tight">
-            Por que escolher o{' '}
-            <span className="text-zab-dourado">Grupo ZAB</span>?
-          </h2>
-          <p className="mt-4 text-zab-texto-claro max-w-2xl mx-auto text-lg">
-            Mais do que uma escola, uma comunidade de aprendizado e crescimento.
-          </p>
-        </div>
+function SectionNiveis({ series }: { series: SerieRecord[] }) {
+  const grouped: Record<string, SerieRecord[]> = {}
+  for (const s of series) {
+    if (!grouped[s.nivel]) grouped[s.nivel] = []
+    grouped[s.nivel].push(s)
+  }
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {items.map((item) => (
-            <div key={item.titulo}
-              className="group rounded-2xl bg-white border border-stone-200 p-6 hover:shadow-lg hover:border-zab-dourado/30 transition-all duration-300">
-              <div className="h-12 w-12 rounded-xl bg-zab-verde-claro flex items-center justify-center text-zab-verde group-hover:bg-zab-verde group-hover:text-white transition-all duration-300 mb-4">
-                {item.icone}
+  // Se não há séries no banco, tentar fallback dos níveis do schoolConfig
+  const hasSeries = Object.keys(grouped).length > 0
+
+  if (!hasSeries) {
+    // Renderizar fallback usando schoolConfig.textos.niveis
+    return (
+      <section id="niveis" className="py-20 md:py-28 bg-gray-50">
+        <div className="mx-auto max-w-7xl px-4 lg:px-8">
+          <div className="text-center mb-14">
+            <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-800 tracking-wider uppercase mb-4 border border-green-200">
+              Níveis de Ensino
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+              Etapas da <span className="text-green-800">formação</span>
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6 md:gap-8">
+            {fallbackConfig.textos.niveis.map((nivel) => (
+              <div
+                key={nivel.nome}
+                className="group rounded-2xl border border-stone-200 bg-white overflow-hidden hover:shadow-xl transition-all duration-300"
+              >
+                <div
+                  className="p-6 text-center"
+                  style={{
+                    background: `linear-gradient(135deg, ${fallbackConfig.identidadeVisual.cor_primaria}, ${fallbackConfig.identidadeVisual.cor_primaria}dd)`,
+                  }}
+                >
+                  <span className="text-5xl block mb-3">{nivel.icone}</span>
+                  <h3 className="text-lg font-bold text-white">{nivel.nome}</h3>
+                  <p className="text-sm text-white/70 mt-1">{nivel.idade}</p>
+                </div>
+                <div className="p-6">
+                  <p className="text-sm text-gray-600 leading-relaxed mb-5">{nivel.descricao}</p>
+                  <ul className="space-y-2">
+                    {nivel.destaques.map((d) => (
+                      <li key={d} className="flex items-center gap-2 text-sm text-gray-500">
+                        <span
+                          className="h-1.5 w-1.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: fallbackConfig.identidadeVisual.cor_secundaria }}
+                        />
+                        {d}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-zab-verde mb-2">{item.titulo}</h3>
-              <p className="text-sm text-zab-texto-claro leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
-  )
-}
-
-function Niveis({ data }: { data: Record<string, unknown> }) {
-  const textos = data?.textos as Record<string, unknown> | undefined
-  const niveis = (textos?.niveis as Array<{ nome: string; idade: string; icone: string; descricao: string; destaques: string[] }>) ?? fallbackConfig.textos.niveis
+      </section>
+    )
+  }
 
   return (
-    <section id="niveis" className="py-20 md:py-28 bg-white">
+    <section id="niveis" className="py-20 md:py-28 bg-gray-50">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="text-center mb-14">
-          <span className="inline-flex items-center rounded-full bg-zab-verde-claro px-3 py-1 text-xs font-semibold text-zab-verde tracking-wider uppercase mb-4">
+          <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-800 tracking-wider uppercase mb-4 border border-green-200">
             Níveis de Ensino
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-zab-verde leading-tight">
-            Etapas da{' '}
-            <span className="text-zab-dourado">formação</span>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+            Etapas da <span className="text-green-800">formação</span>
           </h2>
-          <p className="mt-4 text-zab-texto-claro max-w-2xl mx-auto text-lg">
-            Da Educação Infantil ao Fundamental, cada fase com o cuidado que seu filho merece.
+          <p className="mt-4 text-gray-500 max-w-2xl mx-auto text-lg">
+            Da Educação Infantil ao Ensino Médio, cada fase com o cuidado que seu filho merece.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 md:gap-8">
-          {niveis.map((nivel) => (
-            <div key={nivel.nome}
-              className="group rounded-2xl border border-stone-200 bg-white overflow-hidden hover:shadow-xl transition-all duration-300">
-              <div className="bg-gradient-to-r from-zab-verde to-zab-verde-hover p-6 text-center">
-                <span className="text-5xl block mb-3">{nivel.icone}</span>
-                <h3 className="text-lg font-bold text-white">{nivel.nome}</h3>
-                <p className="text-sm text-zab-verde-claro-3 mt-1">{nivel.idade}</p>
-              </div>
-              <div className="p-6">
-                <p className="text-sm text-zab-texto leading-relaxed mb-5">{nivel.descricao}</p>
-                <ul className="space-y-2">
-                  {nivel.destaques.map((d) => (
-                    <li key={d} className="flex items-center gap-2 text-sm text-zab-texto-claro">
-                      <span className="h-1.5 w-1.5 rounded-full bg-zab-dourado flex-shrink-0" />
-                      {d}
-                    </li>
-                  ))}
-                </ul>
+        <div className="space-y-10">
+          {Object.entries(grouped).map(([nivel, seriesList]) => (
+            <div key={nivel}>
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span
+                  className="inline-block w-2 h-2 rounded-full"
+                  style={{ backgroundColor: fallbackConfig.identidadeVisual.cor_secundaria }}
+                />
+                {NIVEIS_LABELS[nivel] ?? nivel}
+              </h3>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {seriesList.map((s) => (
+                  <div
+                    key={s.id}
+                    className="rounded-xl border border-stone-200 bg-white p-5 hover:shadow-md transition-all"
+                  >
+                    <p className="font-semibold text-gray-900">{s.nome}</p>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
@@ -369,106 +515,229 @@ function Niveis({ data }: { data: Record<string, unknown> }) {
   )
 }
 
-function Contato({ data }: { data: Record<string, unknown> }) {
-  const endereco = data?.endereco as Record<string, string> | undefined ?? fallbackConfig.endereco
-  const contato = data?.contato as Record<string, unknown> | undefined ?? fallbackConfig.contato
-  const telefone = contato?.telefone as string ?? fallbackConfig.contato.telefone
-  const email = contato?.email as string ?? fallbackConfig.contato.email
+// ── Section: Comunicados ──
+
+function SectionComunicados({ comunicados }: { comunicados: ComunicadoRecord[] }) {
+  if (comunicados.length === 0) return null
 
   return (
-    <section id="contato" className="py-20 md:py-28 bg-gradient-to-br from-zab-verde to-zab-footer">
+    <section id="comunicados" className="py-20 md:py-28 bg-gray-50">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="text-center mb-14">
-          <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-zab-amber tracking-wider uppercase mb-4 backdrop-blur-sm border border-white/10">
+          <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-800 tracking-wider uppercase mb-4 border border-green-200">
+            Comunicados
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+            Fique por dentro
+          </h2>
+          <p className="mt-4 text-gray-500 max-w-2xl mx-auto text-lg">
+            Acompanhe as novidades e comunicados importantes da escola.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {comunicados.map((c) => (
+            <div
+              key={c.id}
+              className="rounded-2xl border border-stone-200 bg-white p-6 hover:shadow-lg transition-all"
+            >
+              <div className="flex items-center gap-2 text-xs text-gray-400 mb-3">
+                <BellIcon />
+                <span>{formatDate(c.data_publicacao)}</span>
+              </div>
+              <h3 className="font-bold text-gray-900 mb-2">{c.titulo}</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">{truncate(c.corpo, 150)}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ── Section: Calendário ──
+
+function SectionCalendario({ eventos }: { eventos: EventoRecord[] }) {
+  if (eventos.length === 0) return null
+
+  const TIPO_LABELS: Record<string, string> = {
+    feriado: 'Feriado',
+    prova: 'Prova',
+    reuniao: 'Reunião',
+    evento: 'Evento',
+    recesso: 'Recesso',
+  }
+
+  return (
+    <section id="calendario" className="py-20 md:py-28 bg-white">
+      <div className="mx-auto max-w-7xl px-4 lg:px-8">
+        <div className="text-center mb-14">
+          <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-800 tracking-wider uppercase mb-4 border border-green-200">
+            Calendário
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+            Próximos eventos
+          </h2>
+          <p className="mt-4 text-gray-500 max-w-2xl mx-auto text-lg">
+            Datas importantes para não perder.
+          </p>
+        </div>
+
+        <div className="max-w-2xl mx-auto space-y-3">
+          {eventos.map((e) => (
+            <div
+              key={e.id}
+              className="flex items-start gap-4 rounded-xl border border-stone-200 bg-white p-4 hover:shadow-md transition-all"
+            >
+              <div
+                className="flex-shrink-0 w-12 h-12 rounded-lg flex flex-col items-center justify-center text-white text-xs font-bold"
+                style={{ backgroundColor: fallbackConfig.identidadeVisual.cor_primaria }}
+              >
+                <span>{new Date(e.data_inicio + 'T12:00:00').getDate()}</span>
+                <span className="text-[9px] opacity-80">
+                  {new Date(e.data_inicio + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-semibold text-gray-900 text-sm">{e.nome}</h3>
+                  <span
+                    className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                    style={{
+                      backgroundColor: `${fallbackConfig.identidadeVisual.cor_primaria}15`,
+                      color: fallbackConfig.identidadeVisual.cor_primaria,
+                    }}
+                  >
+                    {TIPO_LABELS[e.tipo] ?? e.tipo}
+                  </span>
+                </div>
+                {e.descricao && (
+                  <p className="text-xs text-gray-500 mt-1">{e.descricao}</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ── Section: Contato ──
+
+function SectionContato({ data }: { data: LandingData }) {
+  return (
+    <section id="contato" className="py-20 md:py-28 relative" style={{ backgroundColor: data.corPrimaria }}>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full blur-3xl" style={{ backgroundColor: `${data.corSecundaria}22` }} />
+      </div>
+
+      <div className="relative mx-auto max-w-7xl px-4 lg:px-8">
+        <div className="text-center mb-14">
+          <span className="inline-flex items-center rounded-full bg-white/10 backdrop-blur-sm px-3 py-1 text-xs font-semibold tracking-wider uppercase mb-4 border border-white/10"
+            style={{ color: data.corSecundaria }}>
             Contato
           </span>
           <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight">
-            Vem fazer parte do{' '}
-            <span className="text-zab-amber">Grupo ZAB</span>
+            Vem fazer parte da{' '}
+            <span style={{ color: data.corSecundaria }}>{data.slug.slice(0, 3).toUpperCase()}</span>
           </h2>
-          <p className="mt-4 text-zab-verde-claro-3 max-w-xl mx-auto text-lg">
+          <p className="mt-4 text-white/60 max-w-xl mx-auto text-lg">
             Estamos prontos para receber sua visita e apresentar nossa proposta pedagógica.
           </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
           <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-6 text-center hover:bg-white/10 transition-colors">
-            <div className="h-12 w-12 rounded-xl bg-zab-dourado/20 flex items-center justify-center mx-auto mb-4 text-zab-amber">
+            <div className="h-12 w-12 rounded-xl flex items-center justify-center mx-auto mb-4"
+              style={{ backgroundColor: `${data.corSecundaria}33`, color: data.corSecundaria }}>
               <MapPinIcon />
             </div>
             <h3 className="font-bold text-white mb-2">Endereço</h3>
-            <p className="text-sm text-zab-verde-claro-3 leading-relaxed">
-              {endereco.rua}, {endereco.numero}<br />
-              {endereco.bairro} — {endereco.cidade}/{endereco.uf}
+            <p className="text-sm text-white/60 leading-relaxed">
+              {data.endereco.rua}, {data.endereco.numero}<br />
+              {data.endereco.bairro} — {data.endereco.cidade}/{data.endereco.uf}
             </p>
           </div>
 
           <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-6 text-center hover:bg-white/10 transition-colors">
-            <div className="h-12 w-12 rounded-xl bg-zab-dourado/20 flex items-center justify-center mx-auto mb-4 text-zab-amber">
+            <div className="h-12 w-12 rounded-xl flex items-center justify-center mx-auto mb-4"
+              style={{ backgroundColor: `${data.corSecundaria}33`, color: data.corSecundaria }}>
               <PhoneIcon />
             </div>
             <h3 className="font-bold text-white mb-2">Telefone</h3>
-            <p className="text-sm text-zab-verde-claro-3 leading-relaxed">{telefone}</p>
+            <p className="text-sm text-white/60 leading-relaxed">{data.telefone}</p>
           </div>
 
           <div className="rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-6 text-center hover:bg-white/10 transition-colors">
-            <div className="h-12 w-12 rounded-xl bg-zab-dourado/20 flex items-center justify-center mx-auto mb-4 text-zab-amber">
+            <div className="h-12 w-12 rounded-xl flex items-center justify-center mx-auto mb-4"
+              style={{ backgroundColor: `${data.corSecundaria}33`, color: data.corSecundaria }}>
               <MailIcon />
             </div>
             <h3 className="font-bold text-white mb-2">E-mail</h3>
-            <p className="text-sm text-zab-verde-claro-3 leading-relaxed">{email}</p>
+            <p className="text-sm text-white/60 leading-relaxed">{data.email}</p>
           </div>
         </div>
 
-        <div className="mt-12 text-center">
-          <p className="text-zab-verde-claro-2 text-sm mb-6">Agende uma visita e conheça nossa estrutura</p>
-          <a href={`mailto:${email}`}
-            className="inline-flex h-12 items-center justify-center rounded-xl bg-zab-dourado px-8 text-base font-bold text-white hover:bg-zab-dourado-hover transition-all duration-200 shadow-lg shadow-zab-dourado/25">
-            Entrar em contato
-          </a>
-        </div>
+        {/* WhatsApp CTA */}
+        {data.telefone && (
+          <div className="mt-12 text-center">
+            <p className="text-white/60 text-sm mb-6">
+              Fale conosco pelo WhatsApp
+            </p>
+            <a
+              href={`https://wa.me/55${data.telefone.replace(/\D/g, '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-12 items-center justify-center rounded-xl px-8 text-base font-bold text-white hover:opacity-90 transition-all duration-200 shadow-lg"
+              style={{ backgroundColor: '#25D366' }}
+            >
+              <svg className="mr-2" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Fale conosco pelo WhatsApp
+            </a>
+          </div>
+        )}
       </div>
     </section>
   )
 }
 
-function Footer({ data }: { data: Record<string, unknown> }) {
-  const textos = data?.textos as Record<string, unknown> | undefined
-  const nome = (data?.nome as string) ?? fallbackConfig.nome
-  const nomeCurto = (data?.slug as string)?.slice(0, 3).toUpperCase() ?? 'ZAB'
-  const rodape = (textos?.rodape as string) ?? fallbackConfig.textos.rodape
+// ── Section: Footer ──
 
-  const redesSociais: Array<{ tipo: string; url: string }> =
-    ((data?.contato as Record<string, unknown>)?.redes_sociais as Array<{ tipo: string; url: string }>) ??
-    fallbackConfig.redesSociais
+function SectionFooter({ data }: { data: LandingData }) {
+  const nomeCurto = data.slug.slice(0, 3).toUpperCase()
 
   return (
-    <footer className="bg-zab-verde-footer text-zab-verde-claro-3">
+    <footer style={{ backgroundColor: '#0D1F0E' }} className="text-gray-400">
       <div className="mx-auto max-w-7xl px-4 lg:px-8 py-12">
         <div className="grid md:grid-cols-3 gap-8">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zab-verde text-white text-sm font-bold tracking-wider">
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-lg text-white text-sm font-bold tracking-wider"
+                style={{ backgroundColor: data.corPrimaria }}
+              >
                 {nomeCurto}
               </div>
               <div>
                 <p className="text-sm font-bold text-white">{nomeCurto}</p>
-                <p className="text-[10px] text-zab-texto-claro">{nome}</p>
+                <p className="text-[10px] text-gray-500">{data.nome}</p>
               </div>
             </div>
-            <p className="text-sm text-zab-texto-claro leading-relaxed max-w-xs">
-              Educação Infantil e Ensino Fundamental em Olinda — PE. Mais de 30 anos formando cidadãos.
-            </p>
+            <p className="text-sm text-gray-500 leading-relaxed max-w-xs">{data.sobre}</p>
           </div>
 
           <div>
             <h4 className="text-sm font-bold text-white mb-4">Navegação</h4>
             <ul className="space-y-2 text-sm">
-              {['Sobre', 'Diferenciais', 'Níveis de Ensino', 'Contato'].map((l) => (
-                <li key={l}>
-                  <a href={`#${l.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, '')}`}
-                    className="text-zab-texto-claro hover:text-zab-amber transition-colors">
-                    {l}
+              {NAV_LINKS.map((l) => (
+                <li key={l.href}>
+                  <a
+                    href={l.href}
+                    className="text-gray-500 hover:text-white transition-colors"
+                  >
+                    {l.label}
                   </a>
                 </li>
               ))}
@@ -478,9 +747,14 @@ function Footer({ data }: { data: Record<string, unknown> }) {
           <div>
             <h4 className="text-sm font-bold text-white mb-4">Redes Sociais</h4>
             <div className="space-y-2 text-sm">
-              {redesSociais.map((r) => (
-                <a key={r.tipo} href={r.url} target="_blank" rel="noopener noreferrer"
-                  className="block text-zab-texto-claro hover:text-zab-amber transition-colors capitalize">
+              {data.redesSociais.map((r) => (
+                <a
+                  key={r.tipo}
+                  href={r.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-gray-500 hover:text-white transition-colors capitalize"
+                >
                   {r.tipo}
                 </a>
               ))}
@@ -488,8 +762,8 @@ function Footer({ data }: { data: Record<string, unknown> }) {
           </div>
         </div>
 
-        <div className="mt-10 pt-8 border-t border-white/5 text-center text-xs text-zab-texto-claro">
-          <p>{rodape}</p>
+        <div className="mt-10 pt-8 border-t border-white/5 text-center text-xs text-gray-500">
+          <p>{data.rodape}</p>
         </div>
       </div>
     </footer>
@@ -499,19 +773,42 @@ function Footer({ data }: { data: Record<string, unknown> }) {
 // ── Page ──
 
 export default async function LandingPage() {
-  const data = await getEscolaData()
+  const { data, fotos, series, comunicados, eventos } = await fetchLandingData()
+
+  if (!data) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Escola não encontrada</h1>
+          <p className="text-gray-500">Verifique o endereço e tente novamente.</p>
+        </div>
+      </div>
+    )
+  }
+
+  const nomeCurto = data.slug.slice(0, 3).toUpperCase()
 
   return (
     <>
       <Header data={data} />
       <main>
-        <Hero data={data} />
-        <Sobre data={data} />
-        <Diferenciais />
-        <Niveis data={data} />
-        <Contato data={data} />
+        <HeroCarousel
+          fotos={fotos}
+          nome={data.nome}
+          nomeCurto={nomeCurto}
+          slogan={data.slogan}
+          corPrimaria={data.corPrimaria}
+          corSecundaria={data.corSecundaria}
+          anosHistoria={data.anosHistoria}
+        />
+        <SectionSobre data={data} />
+        <SectionNiveis series={series} />
+        <Galeria fotos={fotos} />
+        <SectionComunicados comunicados={comunicados} />
+        <SectionCalendario eventos={eventos} />
+        <SectionContato data={data} />
       </main>
-      <Footer data={data} />
+      <SectionFooter data={data} />
     </>
   )
 }

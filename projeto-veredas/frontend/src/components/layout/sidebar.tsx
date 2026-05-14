@@ -27,6 +27,7 @@ import {
   Cake,
   RefreshCw,
   MessageSquare,
+  Image,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { getContagemPendentes } from '@/lib/actions/avisos-whatsapp'
@@ -91,6 +92,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Relatórios', href: '/app/professor/relatorios', icon: <BarChart3 size={20} />, perfis: ['professor'] },
   { label: 'Recuperação', href: '/app/professor/recuperacao', icon: <BarChart3 size={20} />, perfis: ['professor'] },
   { label: 'Configurações', href: '/app/admin/configuracoes', icon: <Settings size={20} />, perfis: ['admin'] },
+  { label: 'Galeria de Fotos', href: '/app/admin/fotos', icon: <Image size={20} />, perfis: ['admin'] },
 ]
 
 export function Sidebar() {
