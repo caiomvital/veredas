@@ -49,11 +49,18 @@ const PORTAL_GROUPS: PortalGroup[] = [
   },
 ]
 
-const STANDALONE_ITEMS: PortalItem[] = [
-  { label: 'Financeiro', href: '/app/responsavel/financeiro', icon: '💰' },
-  { label: 'Solicitações', href: '/app/responsavel/solicitacoes', icon: '📋' },
-  { label: 'Meus Dados', href: '/app/responsavel/meus-dados', icon: '👤' },
-]
+const OUTROS_GROUP: PortalGroup = {
+  key: 'outros',
+  label: 'Outros',
+  icon: '📌',
+  items: [
+    { label: 'Financeiro', href: '/app/responsavel/financeiro', icon: '💰' },
+    { label: 'Solicitações', href: '/app/responsavel/solicitacoes', icon: '📋' },
+    { label: 'Meus Dados', href: '/app/responsavel/meus-dados', icon: '👤' },
+  ],
+}
+
+const MOBILE_GROUPS = [...PORTAL_GROUPS, OUTROS_GROUP]
 
 const DESKTOP_ITEMS: PortalItem[] = [
   { label: 'Painel', href: '/app/responsavel/dashboard', icon: '📊' },
@@ -202,7 +209,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
             </Link>
 
             {/* Groups */}
-            {PORTAL_GROUPS.map((group) => {
+            {MOBILE_GROUPS.map((group) => {
               const isOpen = openGroups[group.key] ?? false
               return (
                 <div key={group.key}>
@@ -252,25 +259,6 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                 </div>
               )
             })}
-
-            {/* Standalone items */}
-            {STANDALONE_ITEMS.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                className={cn(
-                  'flex items-center rounded-md px-3 py-2 text-sm',
-                  pathname === item.href
-                    ? 'bg-zab-verde-claro font-semibold text-zab-verde'
-                    : 'text-zab-texto-claro',
-                )}
-              >
-                <span className="mr-2">{item.icon}</span>
-                <span className="flex-1">{item.label}</span>
-                {renderBadge(item.href)}
-              </Link>
-            ))}
 
             <button
               onClick={signOut}

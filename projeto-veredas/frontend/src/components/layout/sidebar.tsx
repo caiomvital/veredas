@@ -61,7 +61,7 @@ const NAV_GROUPS: NavGroup[] = [
     icon: <Users size={20} />,
     items: [
       { label: 'Alunos', href: '/app/admin/alunos', icon: <Users size={20} />, perfis: ['admin', 'secretaria', 'coordenador'] },
-      { label: 'Responsáveis', href: '/app/admin/responsaveis', icon: <Users size={20} />, perfis: ['admin', 'secretaria'] },
+      { label: 'Responsáveis', href: '/app/admin/responsaveis', icon: <Users size={20} />, perfis: ['admin', 'secretaria', 'coordenador'] },
       { label: 'Funcionários', href: '/app/admin/funcionarios', icon: <Users size={20} />, perfis: ['admin', 'secretaria', 'coordenador'] },
     ],
   },
@@ -101,7 +101,8 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Acadêmico',
     icon: <BarChart3 size={20} />,
     items: [
-      { label: 'Boletins', href: '/app/professor/boletins', icon: <FileText size={20} />, perfis: ['admin', 'coordenador'] },
+      { label: 'Boletins', href: '/app/professor/boletins', icon: <FileText size={20} />, perfis: ['admin'] },
+      { label: 'Boletins', href: '/app/coordenador/boletins', icon: <FileText size={20} />, perfis: ['coordenador'] },
       { label: 'Desempenho', href: '/app/coordenador/desempenho', icon: <BarChart3 size={20} />, perfis: ['coordenador'] },
       { label: 'Conselho de Classe', href: '/app/coordenador/conselho', icon: <ClipboardList size={20} />, perfis: ['coordenador'] },
       { label: 'Diários', href: '/app/coordenador/diarios', icon: <FileText size={20} />, perfis: ['coordenador'] },

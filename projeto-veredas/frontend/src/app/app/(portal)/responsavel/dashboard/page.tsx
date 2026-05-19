@@ -50,9 +50,9 @@ export default function ResponsavelDashboardPage() {
               </div>
               <div className="grid grid-cols-3 gap-0">
                 {[
-                  { label: 'Notas', href: `/responsavel/notas?aluno=${a.id}`, icon: '📝' },
-                  { label: 'Frequência', href: `/responsavel/frequencia?aluno=${a.id}`, icon: '✅' },
-                  { label: 'Boletim', href: `/responsavel/boletim?aluno=${a.id}`, icon: '📄' },
+                  { label: 'Notas', href: `/app/responsavel/notas?aluno=${a.id}`, icon: '📝' },
+                  { label: 'Frequência', href: `/app/responsavel/frequencia?aluno=${a.id}`, icon: '✅' },
+                  { label: 'Boletim', href: `/app/responsavel/boletim?aluno=${a.id}`, icon: '📄' },
                 ].map((item) => (
                   <Link key={item.label} href={item.href}
                     className="flex flex-col items-center gap-1 py-4 px-2 text-center hover:bg-zab-verde-claro transition-colors border-r border-stone-100 last:border-r-0">
