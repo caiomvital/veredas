@@ -92,7 +92,8 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Contratos', href: '/app/secretaria/contratos', icon: <FileText size={20} />, perfis: ['admin', 'secretaria'] },
       { label: 'Justificativas', href: '/app/secretaria/justificativas', icon: <ClipboardList size={20} />, perfis: ['admin', 'secretaria'] },
       { label: 'Solicitações', href: '/app/secretaria/solicitacoes', icon: <MessageSquare size={20} />, perfis: ['admin', 'secretaria'] },
-      { label: 'Censo Escolar', href: '/app/admin/censo', icon: <Database size={20} />, perfis: ['admin'] },
+      { label: 'Censo Escolar', href: '/app/admin/censo', icon: <Database size={20} />, perfis: ['admin', 'secretaria'] },
+      { label: 'Justificativas de Frequência', href: '/app/secretaria/frequencia-critica', icon: <ClipboardList size={20} />, perfis: ['admin', 'secretaria'] },
     ],
   },
   {
@@ -101,7 +102,6 @@ const NAV_GROUPS: NavGroup[] = [
     icon: <BarChart3 size={20} />,
     items: [
       { label: 'Boletins', href: '/app/professor/boletins', icon: <FileText size={20} />, perfis: ['admin', 'coordenador'] },
-      { label: 'Frequência Crítica', href: '/app/secretaria/frequencia-critica', icon: <ClipboardList size={20} />, perfis: ['admin'] },
       { label: 'Desempenho', href: '/app/coordenador/desempenho', icon: <BarChart3 size={20} />, perfis: ['coordenador'] },
       { label: 'Conselho de Classe', href: '/app/coordenador/conselho', icon: <ClipboardList size={20} />, perfis: ['coordenador'] },
       { label: 'Diários', href: '/app/coordenador/diarios', icon: <FileText size={20} />, perfis: ['coordenador'] },
@@ -114,7 +114,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Financeiro',
     icon: <DollarSign size={20} />,
     items: [
-      { label: 'Financeiro', href: '/app/admin/financeiro', icon: <DollarSign size={20} />, perfis: ['admin', 'secretaria'] },
+      { label: 'Financeiro', href: '/app/secretaria/financeiro', icon: <DollarSign size={20} />, perfis: ['admin', 'secretaria'] },
       { label: 'Inadimplência', href: '/app/admin/inadimplencia', icon: <DollarSign size={20} />, perfis: ['admin', 'secretaria'] },
       { label: 'Rel. Financeiro', href: '/app/admin/financeiro/relatorio', icon: <BarChart3 size={20} />, perfis: ['admin', 'secretaria'] },
       { label: 'Avisos WhatsApp', href: '/app/secretaria/avisos-whatsapp', icon: <MessageCircle size={20} />, perfis: ['admin', 'secretaria'] },
@@ -181,6 +181,10 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
 ]
+
+const PERFIL_GROUP_ORDER: Record<string, string[]> = {
+  professor: ['prof-turmas', 'prof-aulas', 'prof-alunos', 'comunicacao', 'prof-relatorios'],
+}
 
 function getInitialOpenGroups(): Record<string, boolean> {
   if (typeof window !== 'undefined') {
@@ -255,10 +259,17 @@ export function Sidebar() {
 
   const filteredUngrouped = UNGROUPED_ITEMS.filter((item) => item.perfis.includes(perfil))
 
-  const filteredGroups = NAV_GROUPS.map((group) => ({
-    ...group,
-    items: group.items.filter((item) => item.perfis.includes(perfil)),
-  })).filter((group) => group.items.length > 0)
+  const order = PERFIL_GROUP_ORDER[perfil]
+  const filteredGroups = NAV_GROUPS
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => item.perfis.includes(perfil)),
+    }))
+    .filter((group) => group.items.length > 0)
+    .sort((a, b) => {
+      if (!order) return 0
+      return order.indexOf(a.key) - order.indexOf(b.key)
+    })
 
   function isItemActive(item: NavItem) {
     return pathname === item.href || pathname.startsWith(item.href + '/')
