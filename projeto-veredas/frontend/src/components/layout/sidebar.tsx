@@ -6,6 +6,7 @@ import { useSchool } from '@/hooks/useSchool'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils/cn'
 import { Avatar } from '@/components/ui/avatar'
+import { SchoolTour, resetTourStorage } from '@/components/tour/SchoolTour'
 import type { Perfil } from '@/types/school'
 import {
   LayoutDashboard,
@@ -308,8 +309,16 @@ export function Sidebar() {
     return null
   }
 
+  const TOUR_NAV_MAP: Record<string, string> = {
+    '/app/admin/configuracoes': 'nav-configuracoes',
+    '/app/professor/chamada': 'nav-chamada',
+    '/app/professor/notas': 'nav-notas',
+    '/app/professor/agenda': 'nav-agenda-prof',
+  }
+
   return (
     <>
+      <SchoolTour perfil={perfil} />
       {/* Mobile toggle */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -325,6 +334,7 @@ export function Sidebar() {
 
       {/* Sidebar */}
       <aside
+        data-tour="sidebar"
         className={cn(
           'fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-sidebar-bg text-sidebar-text transition-transform lg:static lg:translate-x-0',
           isOpen ? 'translate-x-0' : '-translate-x-full',
@@ -372,6 +382,8 @@ export function Sidebar() {
               return (
                 <li key={group.key}>
                   <button
+                    data-tour={`group-${group.key}`}
+                    data-group-open={groupOpen ? 'true' : 'false'}
                     onClick={() => toggleGroup(group.key)}
                     className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-semibold text-white/80 transition-colors hover:bg-sidebar-hover hover:text-white"
                   >
@@ -397,6 +409,7 @@ export function Sidebar() {
                         <Link
                           key={item.href}
                           href={item.href}
+                          data-tour={TOUR_NAV_MAP[item.href] || undefined}
                           onClick={() => setIsOpen(false)}
                           className={cn(
                             'flex items-center gap-3 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
@@ -433,6 +446,15 @@ export function Sidebar() {
               <LogOut size={16} />
             </button>
           </div>
+          <button
+            onClick={() => {
+              resetTourStorage(perfil)
+              window.dispatchEvent(new CustomEvent('school:tour:restart'))
+            }}
+            className="mt-2 w-full rounded-md px-2 py-1.5 text-xs text-white/50 transition-colors hover:bg-sidebar-hover hover:text-white/80"
+          >
+            Ver tour novamente
+          </button>
         </div>
       </aside>
     </>

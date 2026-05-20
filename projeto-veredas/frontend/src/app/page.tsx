@@ -53,6 +53,25 @@ interface LandingData {
   anosHistoria: number
 }
 
+function siglaCurta(slug: string, nome?: string): string {
+  if (slug.length <= 4) return slug.toUpperCase()
+  if (nome) {
+    const iniciais = nome
+      .split(' ')
+      .filter((w) => w.length >= 2)
+      .slice(0, 2)
+      .map((w) => w[0].toUpperCase())
+      .join('')
+    if (iniciais.length >= 2) return iniciais
+  }
+  return slug.substring(0, 2).toUpperCase()
+}
+
+function nomeExibicao(slug: string): string {
+  if (slug.length <= 4) return slug.toUpperCase()
+  return slug.charAt(0).toUpperCase() + slug.slice(1)
+}
+
 // ── Navigation links ──
 
 const NAV_LINKS = [
@@ -275,7 +294,8 @@ async function fetchLandingData(): Promise<{
 // ── Section: Header ──
 
 function Header({ data }: { data: LandingData }) {
-  const nomeCurto = data.slug.slice(0, 3).toUpperCase()
+  const badgeLabel = siglaCurta(data.slug, data.nome)
+  const displayNome = nomeExibicao(data.slug)
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-stone-200/60">
@@ -285,11 +305,11 @@ function Header({ data }: { data: LandingData }) {
             className="flex h-10 w-10 items-center justify-center rounded-lg text-white text-sm font-bold tracking-wider transition-colors"
             style={{ backgroundColor: data.corPrimaria }}
           >
-            {nomeCurto}
+            {badgeLabel}
           </div>
           <div className="hidden sm:block">
             <p className="text-sm font-bold leading-tight" style={{ color: data.corPrimaria }}>
-              {nomeCurto}
+              {displayNome}
             </p>
             <p className="text-[10px] text-gray-500 leading-tight">{data.nome}</p>
           </div>
@@ -634,7 +654,7 @@ function SectionContato({ data }: { data: LandingData }) {
           </span>
           <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight">
             Vem fazer parte da{' '}
-            <span style={{ color: data.corSecundaria }}>{data.slug.slice(0, 3).toUpperCase()}</span>
+            <span style={{ color: data.corSecundaria }}>{nomeExibicao(data.slug)}</span>
           </h2>
           <p className="mt-4 text-white/60 max-w-xl mx-auto text-lg">
             Estamos prontos para receber sua visita e apresentar nossa proposta pedagógica.
@@ -699,7 +719,8 @@ function SectionContato({ data }: { data: LandingData }) {
 // ── Section: Footer ──
 
 function SectionFooter({ data }: { data: LandingData }) {
-  const nomeCurto = data.slug.slice(0, 3).toUpperCase()
+  const badgeLabel = siglaCurta(data.slug, data.nome)
+  const displayNome = nomeExibicao(data.slug)
 
   return (
     <footer style={{ backgroundColor: '#0D1F0E' }} className="text-gray-400">
@@ -711,10 +732,10 @@ function SectionFooter({ data }: { data: LandingData }) {
                 className="flex h-10 w-10 items-center justify-center rounded-lg text-white text-sm font-bold tracking-wider"
                 style={{ backgroundColor: data.corPrimaria }}
               >
-                {nomeCurto}
+                {badgeLabel}
               </div>
               <div>
-                <p className="text-sm font-bold text-white">{nomeCurto}</p>
+                <p className="text-sm font-bold text-white">{displayNome}</p>
                 <p className="text-[10px] text-gray-500">{data.nome}</p>
               </div>
             </div>
@@ -784,7 +805,7 @@ export default async function LandingPage() {
     )
   }
 
-  const nomeCurto = data.slug.slice(0, 3).toUpperCase()
+  const nomeCurto = nomeExibicao(data.slug)
 
   return (
     <>

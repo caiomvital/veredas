@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils/cn'
 import { useState, useEffect } from 'react'
 import { contarNaoLidosResponsavel } from '@/lib/actions/agenda'
 import { ChevronDown } from 'lucide-react'
+import { SchoolTour, resetTourStorage } from '@/components/tour/SchoolTour'
 
 interface PortalItem {
   label: string
@@ -75,6 +76,11 @@ const DESKTOP_ITEMS: PortalItem[] = [
   { label: 'Meus Dados', href: '/app/responsavel/meus-dados', icon: '👤' },
 ]
 
+const PORTAL_TOUR_MAP: Record<string, string> = {
+  '/app/responsavel/agenda': 'portal-agenda',
+  '/app/responsavel/financeiro': 'portal-financeiro',
+}
+
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   const { perfil, user, signOut, isLoading: authLoading } = useAuth()
   const { config } = useSchool()
@@ -129,6 +135,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="min-h-screen bg-zab-creme">
+      <SchoolTour perfil={perfil} />
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-stone-200 bg-white shadow-sm">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
@@ -149,6 +156,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                 <Link
                   key={item.href}
                   href={item.href}
+                  data-tour={PORTAL_TOUR_MAP[item.href] || undefined}
                   className={cn(
                     'relative rounded-md px-3 py-1.5 text-sm transition-colors',
                     isActive
@@ -241,6 +249,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                         <Link
                           key={item.href}
                           href={item.href}
+                          data-tour={PORTAL_TOUR_MAP[item.href] || undefined}
                           onClick={() => setMenuOpen(false)}
                           className={cn(
                             'flex items-center rounded-md px-3 py-2 text-sm',
@@ -260,6 +269,15 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
               )
             })}
 
+            <button
+              onClick={() => {
+                resetTourStorage(perfil!)
+                window.dispatchEvent(new CustomEvent('school:tour:restart'))
+              }}
+              className="w-full rounded-md px-3 py-2 text-left text-sm text-zab-verde transition-colors hover:bg-zab-verde-claro/50"
+            >
+              Ver tour novamente
+            </button>
             <button
               onClick={signOut}
               className="w-full rounded-md px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-50"

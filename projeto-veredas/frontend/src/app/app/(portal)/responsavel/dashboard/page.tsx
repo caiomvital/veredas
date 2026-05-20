@@ -43,12 +43,12 @@ export default function ResponsavelDashboardPage() {
       ) : (
         <div className="space-y-4">
           {alunos.map((a) => (
-            <div key={a.id} className="rounded-xl bg-white border border-stone-200 overflow-hidden">
+            <div key={a.id} data-tour="aluno-card" className="rounded-xl bg-white border border-stone-200 overflow-hidden">
               <div className="bg-gradient-to-r from-zab-verde to-zab-verde-hover p-4 text-white">
                 <h2 className="text-lg font-bold">{a.nome_completo}</h2>
                 <p className="text-sm text-zab-verde-claro-3">{a.turma_serie} · {a.turma_codigo} ({a.turma_turno})</p>
               </div>
-              <div className="grid grid-cols-3 gap-0">
+              <div data-tour="notas-freq" className="grid grid-cols-3 gap-0">
                 {[
                   { label: 'Notas', href: `/app/responsavel/notas?aluno=${a.id}`, icon: '📝' },
                   { label: 'Frequência', href: `/app/responsavel/frequencia?aluno=${a.id}`, icon: '✅' },
